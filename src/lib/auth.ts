@@ -19,24 +19,45 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        staffId: { label: "Staff ID", type: "text" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email and password are required");
+        if (!credentials?.password) {
+          throw new Error("Password is required");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+        let user;
+
+        // Check if it's a hospital staff login (staffId provided)
+        if (credentials.staffId) {
+          if (!credentials.staffId.match(/^HOSP-\d{5}$/)) {
+            throw new Error("Invalid Staff ID format");
+          }
+
+          // Find user by staffId through FacilityUser relation
+          const facilityUser = await prisma.facilityUser.findUnique({
+            where: { staffId: credentials.staffId },
+            include: { user: true },
+          });
+
+          if (facilityUser) {
+            user = facilityUser.user;
+          }
+        } else if (credentials.email) {
+          // Regular user login
+          user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
+        }
 
         if (!user || !user.password) {
-          throw new Error("Invalid email or password");
+          throw new Error("Invalid credentials");
         }
 
         const isPasswordValid = await compare(credentials.password, user.password);
 
         if (!isPasswordValid) {
-          throw new Error("Invalid email or password");
+          throw new Error("Invalid credentials");
         }
 
         return {

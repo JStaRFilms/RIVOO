@@ -116,6 +116,7 @@ model FacilityUser {
   id           String    @id @default(uuid())
   facilityId   String    @map("facility_id")
   userId       String    @unique @map("user_id")
+  staffId      String    @unique @map("staff_id") // Staff ID like HOSP-12345
   role         StaffRole @default(STAFF)
   department   String?
   position     String?

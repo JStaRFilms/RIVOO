@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aura - Medical Profile</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@700;900&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Roboto', 'sans-serif'],
+                        'heading': ['Lato', 'sans-serif']
+                    },
+                    colors: {
+                        'user-primary': '#198754',
+                        'user-emergency': '#c1121f',
+                        'user-text': '#003049',
+                        'user-secondary': '#718096',
+                        'user-bg': '#f8f9fa',
+                        'user-warning': '#ff9f0a',
+                        'user-info': '#0288d1',
+                    },
+                    borderRadius: {
+                        'xl': '1.5rem',
+                        '2xl': '2rem',
+                        '3xl': '2.5rem',
+                        '4xl': '3rem',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .mobile-screen {
+                height: 100vh;
+                max-height: 100vh;
+                overflow: hidden;
+            }
+            
+            .form-section {
+                transition: all 0.2s ease;
+            }
+            
+            .form-section:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            }
+        }
+    </style>
+</head>
+<body class="bg-user-bg font-sans mobile-screen">
+    <!-- Header -->
+    <div class="bg-white px-6 py-4 border-b">
+        <div class="flex items-center">
+            <a href="#" class="mr-4 p-2 hover:bg-gray-100 rounded-full">
+                <svg class="w-6 h-6 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+            </a>
+            <h1 class="text-xl font-bold text-user-text">Medical Profile</h1>
+        </div>
+    </div>
+    
+    <div class="h-[calc(100vh-65px)] overflow-y-auto pb-24">
+        <div class="px-6 py-6">
+            <!-- Intro Section -->
+            <div class="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-gray-100">
+                <div class="flex">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4 mt-1">
+                        <svg class="w-6 h-6 text-user-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-user-text mb-2 font-heading">Your medical information will be shared automatically during emergencies</h2>
+                        <p class="text-user-secondary text-sm">This information helps first responders provide better care. All data is encrypted and only shared when you activate an emergency alert.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Sections -->
+            <form>
+                <!-- Blood Type Section -->
+                <div class="form-section bg-white rounded-2xl p-5 mb-5 shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-user-text mb-1 font-heading">Blood Type</h2>
+                            <p class="text-sm text-user-secondary">Required for potential transfusions</p>
+                        </div>
+                        <div class="bg-green-100 text-user-primary text-xs font-medium px-3 py-1 rounded-full">
+                            Required
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-4 gap-2">
+                        <button type="button" class="py-3 rounded-xl border-2 border-user-primary text-user-primary font-medium">A+</button>
+                        <button type="button" class="py-3 rounded-xl border border-gray-300 hover:bg-gray-50">A-</button>
+                        <button type="button" class="py-3 rounded-xl border border-gray-300 hover:bg-gray-50">B+</button>
+                        <button type="button" class="py-3 rounded-xl border border-gray-300 hover:bg-gray-50">B-</button>
+                        <button type="button" class="py-3 rounded-xl border border-gray-300 hover:bg-gray-50">AB+</button>
+                        <button type="button" class="py-3 rounded-xl border border-gray-300 hover:bg-gray-50">AB-</button>
+                        <button type="button" class="py-3 rounded-xl border border-gray-300 hover:bg-gray-50">O+</button>
+                        <button type="button" class="py-3 rounded-xl border border-gray-300 hover:bg-gray-50">O-</button>
+                    </div>
+                </div>
+                
+                <!-- Allergies Section -->
+                <div class="form-section bg-white rounded-2xl p-5 mb-5 shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-user-text mb-1 font-heading">Allergies</h2>
+                            <p class="text-sm text-user-secondary">Medication, food, or environmental allergies</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center bg-gray-50 p-3 rounded-xl">
+                            <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-user-emergency" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <input type="text" class="w-full bg-transparent border-0 focus:ring-0 p-0 text-user-text" placeholder="Penicillin">
+                            </div>
+                            <button class="text-user-secondary hover:text-user-text">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center bg-gray-50 p-3 rounded-xl">
+                            <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-user-emergency" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <input type="text" class="w-full bg-transparent border-0 focus:ring-0 p-0 text-user-text" placeholder="Peanuts">
+                            </div>
+                            <button class="text-user-secondary hover:text-user-text">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <button type="button" class="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-user-secondary hover:bg-gray-50 transition">
+                            <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Add Allergy
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Chronic Conditions Section -->
+                <div class="form-section bg-white rounded-2xl p-5 mb-5 shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-user-text mb-1 font-heading">Chronic Conditions</h2>
+                            <p class="text-sm text-user-secondary">Ongoing medical conditions</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center bg-gray-50 p-3 rounded-xl">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-user-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <input type="text" class="w-full bg-transparent border-0 focus:ring-0 p-0 text-user-text" placeholder="Diabetes">
+                            </div>
+                            <button class="text-user-secondary hover:text-user-text">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center bg-gray-50 p-3 rounded-xl">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-user-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <input type="text" class="w-full bg-transparent border-0 focus:ring-0 p-0 text-user-text" placeholder="Asthma">
+                            </div>
+                            <button class="text-user-secondary hover:text-user-text">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <button type="button" class="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-user-secondary hover:bg-gray-50 transition">
+                            <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Add Condition
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Emergency Contacts Section -->
+                <div class="form-section bg-white rounded-2xl p-5 mb-5 shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-user-text mb-1 font-heading">Emergency Contacts</h2>
+                            <p class="text-sm text-user-secondary">Will be notified during emergencies</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <p class="font-medium text-user-text">Sarah Johnson</p>
+                                    <p class="text-sm text-user-secondary">Primary Contact</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="p-1 hover:bg-gray-200 rounded">
+                                        <svg class="w-5 h-5 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="p-1 hover:bg-gray-200 rounded">
+                                        <svg class="w-5 h-5 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="pl-2 border-l-2 border-user-primary">
+                                <p class="text-sm text-user-text">555-123-4567</p>
+                                <p class="text-sm text-user-secondary">sarah.j@email.com</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <p class="font-medium text-user-text">Michael Johnson</p>
+                                    <p class="text-sm text-user-secondary">Secondary Contact</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="p-1 hover:bg-gray-200 rounded">
+                                        <svg class="w-5 h-5 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="p-1 hover:bg-gray-200 rounded">
+                                        <svg class="w-5 h-5 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="pl-2 border-l-2 border-user-primary">
+                                <p class="text-sm text-user-text">555-987-6543</p>
+                                <p class="text-sm text-user-secondary">michael.j@email.com</p>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-user-secondary hover:bg-gray-50 transition">
+                            <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Add Contact
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Save Button - Fixed at bottom -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white px-6 py-4 border-t">
+        <button class="w-full py-4 bg-user-primary text-white rounded-2xl font-medium text-lg hover:bg-green-600 transition">
+            Save Medical Profile
+        </button>
+    </div>
+</body>
+</html>

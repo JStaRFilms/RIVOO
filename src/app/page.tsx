@@ -64,10 +64,10 @@ export default function Home() {
             </p>
             <div className="space-y-3">
               <Link
-                href="/auth/signin"
+                href="/hospital/login"
                 className="block w-full py-3 px-6 bg-hospital-primary text-white rounded-xl font-medium hover:bg-blue-700 transition"
               >
-                Sign In as Staff
+                Hospital Staff Login
               </Link>
               <Link
                 href="/hospital/dashboard"
@@ -135,6 +135,7 @@ export default function Home() {
             <div>
               <h4 className="font-semibold text-user-text mb-2">Hospital Portal</h4>
               <ul className="space-y-1 text-user-secondary">
+                <li><code className="bg-gray-100 px-2 py-1 rounded">/hospital/login</code> - Hospital staff login</li>
                 <li><code className="bg-gray-100 px-2 py-1 rounded">/hospital/dashboard</code> - Incident management</li>
                 <li><code className="bg-gray-100 px-2 py-1 rounded">/hospital/incidents</code> - Incident details (planned)</li>
               </ul>

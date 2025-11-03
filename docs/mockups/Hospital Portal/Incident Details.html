@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura - Incident Details</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Roboto', 'sans-serif'],
+                        'heading': ['Lato', 'sans-serif']
+                    },
+                    colors: {
+                        // Hospital Portal Colors
+                        'hospital-primary': '#003049',
+                        'hospital-accent': '#0288d1',
+                        'hospital-alert': '#c1121f',
+                        'hospital-success': '#198754',
+                        'hospital-text': '#003049',
+                        'hospital-secondary': '#718096',
+                        'hospital-bg': '#f8f9fa',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .dashboard-container {
+                display: grid;
+                grid-template-columns: 280px 1fr;
+                min-height: 100vh;
+            }
+            
+            .vitals-card {
+                transition: all 0.15s ease;
+            }
+            
+            .vitals-card:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            }
+            
+            .status-badge {
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 500;
+                display: inline-block;
+            }
+            
+            .status-new {
+                background-color: rgba(193, 18, 31, 0.1);
+                color: #c1121f;
+            }
+            
+            .status-accepted {
+                background-color: rgba(25, 135, 84, 0.1);
+                color: #198754;
+            }
+            
+            .status-in-progress {
+                background-color: rgba(2, 136, 209, 0.1);
+                color: #0288d1;
+            }
+            
+            .map-container {
+                height: 300px;
+                background-color: #e9ecef;
+                border-radius: 12px;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .map-placeholder {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                color: #6c757d;
+            }
+            
+            .timeline-item {
+                position: relative;
+                padding-left: 30px;
+                margin-bottom: 24px;
+            }
+            
+            .timeline-item:last-child {
+                margin-bottom: 0;
+            }
+            
+            .timeline-item::before {
+                content: '';
+                position: absolute;
+                left: 6px;
+                top: 8px;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                border: 2px solid currentColor;
+                background-color: white;
+            }
+            
+            .timeline-item::after {
+                content: '';
+                position: absolute;
+                left: 10px;
+                top: 20px;
+                bottom: -12px;
+                width: 2px;
+                background-color: currentColor;
+            }
+            
+            .timeline-item:last-child::after {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-hospital-bg font-sans">
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <div class="bg-hospital-primary h-full min-h-screen p-4">
+            <div class="flex items-center mb-8">
+                <div class="bg-white w-10 h-10 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-hospital-primary font-bold text-xl">A</span>
+                </div>
+                <h1 class="text-xl font-bold text-white font-heading">Aura Hospital</h1>
+            </div>
+            
+            <ul class="space-y-1">
+                <li class="px-3 py-2.5 text-white hover:bg-blue-800 rounded-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Alert Dashboard
+                </li>
+                <li class="px-3 py-2.5 bg-white text-hospital-primary rounded-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    Active Cases
+                </li>
+                <li class="px-3 py-2.5 text-white hover:bg-blue-800 rounded-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    Patients
+                </li>
+                <li class="px-3 py-2.5 text-white hover:bg-blue-800 rounded-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l2 2 4-4m6 8a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Analytics
+                </li>
+                <li class="px-3 py-2.5 text-white hover:bg-blue-800 rounded-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.927-1.756 3.353 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.927 0 3.353a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.927 1.756-3.353 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.927 0-3.353a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Settings
+                </li>
+            </ul>
+            
+            <div class="mt-8 pt-4 border-t border-blue-800">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-hospital-primary font-medium mr-3">DR</div>
+                    <div>
+                        <p class="font-medium text-white">Dr. Rodriguez</p>
+                        <p class="text-sm text-blue-200">ER Lead Physician</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white border-b px-6 py-4 flex items-center justify-between">
+                <div>
+                    <div class="flex items-center">
+                        <h1 class="text-xl font-bold text-hospital-primary font-heading mr-3">Incident Details</h1>
+                        <span class="status-badge status-accepted">ACCEPTED</span>
+                    </div>
+                    <p class="text-sm text-gray-600">Stroke Alert #AUR-456 • Received 2 minutes ago</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-hospital-primary" placeholder="Search...">
+                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <button class="p-2 hover:bg-gray-100 rounded-full">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                    </button>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-hospital-accent rounded-full flex items-center justify-center text-white font-medium mr-2">DR</div>
+                        <span class="font-medium text-gray-700">Dr. Rodriguez</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Dashboard Content -->
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left Column - Patient Profile & Vitals -->
+                    <div class="space-y-6">
+                        <!-- Patient Profile Card -->
+                        <div class="bg-white rounded-xl p-5 border border-gray-200">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-hospital-primary mb-1">Patient Profile</h2>
+                                    <p class="text-sm text-hospital-secondary">Pre-filled medical information</p>
+                                </div>
+                                <div class="bg-blue-50 text-hospital-accent w-8 h-8 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 0h2m-4 0h2m13 0a2 2 0 012 2v5a2 2 0 01-2 2h-2m-4 0v5h4m-6 0h4m-6 0h-2a2 2 0 00-2 2v5a2 2 0 002 2h2"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-start">
+                                    <div class="w-12 h-12 bg-gray-200 rounded-lg mr-3 flex-shrink-0"></div>
+                                    <div>
+                                        <h3 class="font-bold text-hospital-primary text-lg">Michael Thompson</h3>
+                                        <p class="text-sm text-hospital-secondary">45 years old • Male</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt-3 border-t border-gray-200">
+                                    <h4 class="font-medium text-hospital-primary mb-2">Blood Type</h4>
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center mr-2">
+                                            <span class="text-hospital-alert font-bold">A+</span>
+                                        </div>
+                                        <span class="text-sm text-hospital-secondary">Type A Positive</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt-3 border-t border-gray-200">
+                                    <h4 class="font-medium text-hospital-primary mb-2">Allergies</h4>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 bg-hospital-alert rounded-full mr-2"></div>
+                                            <span class="text-sm">Penicillin</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 bg-hospital-alert rounded-full mr-2"></div>
+                                            <span class="text-sm">Peanuts</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt-3 border-t border-gray-200">
+                                    <h4 class="font-medium text-hospital-primary mb-2">Chronic Conditions</h4>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 bg-hospital-accent rounded-full mr-2"></div>
+                                            <span class="text-sm">Hypertension</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 bg-hospital-accent rounded-full mr-2"></div>
+                                            <span class="text-sm">Type 2 Diabetes</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Vital Signs Card -->
+                        <div class="bg-white rounded-xl p-5 border border-gray-200">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-hospital-primary mb-1">Vital Signs</h2>
+                                    <p class="text-sm text-hospital-secondary">Last updated 1 minute ago</p>
+                                </div>
+                                <div class="bg-green-50 text-hospital-success w-8 h-8 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-blue-50 p-3 rounded-lg">
+                                    <p class="text-xs text-gray-500">Heart Rate</p>
+                                    <p class="text-2xl font-bold text-hospital-primary">88 <span class="text-base font-medium">bpm</span></p>
+                                    <p class="text-xs text-green-600">Normal</p>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg">
+                                    <p class="text-xs text-gray-500">Blood Pressure</p>
+                                    <p class="text-2xl font-bold text-hospital-primary">145/92</p>
+                                    <p class="text-xs text-red-600">Elevated</p>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg">
+                                    <p class="text-xs text-gray-500">SpO2</p>
+                                    <p class="text-2xl font-bold text-hospital-primary">96%</p>
+                                    <p class="text-xs text-green-600">Normal</p>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg">
+                                    <p class="text-xs text-gray-500">Temperature</p>
+                                    <p class="text-2xl font-bold text-hospital-primary">37.2°C</p>
+                                    <p class="text-xs text-green-600">Normal</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Samaritan Notes Card -->
+                        <div class="bg-white rounded-xl p-5 border border-gray-200">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-hospital-primary mb-1">Samaritan Notes</h2>
+                                    <p class="text-sm text-hospital-secondary">Reported by Sarah Johnson</p>
+                                </div>
+                                <div class="bg-yellow-50 text-user-warning w-8 h-8 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-sm text-hospital-secondary italic">
+                                    "Patient experiencing sudden numbness on right side, slurred speech, and facial drooping. Conscious but disoriented. Arrived at location 2 minutes ago."
+                                </p>
+                                <div class="mt-3 flex justify-between items-center">
+                                    <span class="text-xs text-gray-500">Reported 3 minutes ago</span>
+                                    <button class="text-xs text-hospital-accent hover:text-hospital-primary">View full report</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column - Main Content -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Location & Timeline -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Location Map -->
+                            <div class="bg-white rounded-xl p-5 border border-gray-200">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h2 class="text-lg font-bold text-hospital-primary mb-1">Location</h2>
+                                        <p class="text-sm text-hospital-secondary">456 Oak Street, Suite 200</p>
+                                    </div>
+                                    <div class="bg-blue-50 text-hospital-accent w-8 h-8 rounded-lg flex items-center justify-center">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                
+                                <div class="map-container">
+                                    <div class="map-placeholder">
+                                        <div class="text-5xl mb-2">📍</div>
+                                        <p class="text-gray-500 font-medium">Interactive Map</p>
+                                        <p class="text-sm text-gray-400 mt-1">Live location tracking</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 grid grid-cols-2 gap-3">
+                                    <div class="bg-gray-50 p-3 rounded-lg">
+                                        <p class="text-xs text-gray-500">ETA</p>
+                                        <p class="font-bold text-hospital-primary">7 min</p>
+                                    </div>
+                                    <div class="bg-gray-50 p-3 rounded-lg">
+                                        <p class="text-xs text-gray-500">Response Team</p>
+                                        <p class="font-bold text-hospital-primary">Unit 7 - Ambulance</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Incident Timeline -->
+                            <div class="bg-white rounded-xl p-5 border border-gray-200">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h2 class="text-lg font-bold text-hospital-primary mb-1">Incident Timeline</h2>
+                                        <p class="text-sm text-hospital-secondary">Key events in chronological order</p>
+                                    </div>
+                                    <div class="bg-gray-50 text-hospital-secondary w-8 h-8 rounded-lg flex items-center justify-center">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                
+                                <div class="pl-4">
+                                    <div class="timeline-item">
+                                        <h3 class="font-medium text-hospital-primary mb-1">Emergency Reported</h3>
+                                        <p class="text-sm text-hospital-secondary">2 minutes ago • Critical Alert</p>
+                                        <p class="text-sm mt-1">Patient reported stroke symptoms by Samaritan</p>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <h3 class="font-medium text-hospital-primary mb-1">Medical Profile Received</h3>
+                                        <p class="text-sm text-hospital-secondary">2 minutes ago</p>
+                                        <p class="text-sm mt-1">Blood type, allergies, and conditions loaded</p>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <h3 class="font-medium text-hospital-primary mb-1">Response Team Dispatched</h3>
+                                        <p class="text-sm text-hospital-secondary">1 minute ago</p>
+                                        <p class="text-sm mt-1">Unit 7 - Ambulance assigned to case</p>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <h3 class="font-medium text-hospital-primary mb-1">Location Confirmed</h3                                        <p class="text-sm text-hospital-secondary">Just now</p>
+                                        <p class="text-sm mt-1">GPS coordinates verified with Samaritan</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Treatment Plan -->
+                        <div class="bg-white rounded-xl p-5 border border-gray-200">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-hospital-primary mb-1">Treatment Plan</h2>
+                                    <p class="text-sm text-hospital-secondary">Recommended actions based on symptoms</p>
+                                </div>
+                                <button class="px-3 py-1 bg-hospital-accent text-white rounded-md text-sm font-medium">
+                                    Update Plan
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="bg-blue-50 p-4 rounded-lg">
+                                        <div class="flex items-start">
+                                            <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                                                <svg class="w-5 h-5 text-hospital-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-hospital-primary">Immediate Actions</p>
+                                                <ul class="mt-1 space-y-1 text-sm text-hospital-secondary">
+                                                    <li>• Monitor vital signs continuously</li>
+                                                    <li>• Keep patient calm and still</li>
+                                                    <li>• Prepare for potential intubation</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-blue-50 p-4 rounded-lg">
+                                        <div class="flex items-start">
+                                            <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                                                <svg class="w-5 h-5 text-hospital-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2h-4l-3-3h-4a2 2 0 00-2 2v16m16 0h-2m-2 0h-2m-2 0h-2m-2 0h-2m-2 0h-2"></path>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-hospital-primary">Medications</p>
+                                                <ul class="mt-1 space-y-1 text-sm text-hospital-secondary">
+                                                    <li>• Aspirin 325mg (if no allergy)</li>
+                                                    <li>• Nitroglycerin (if BP > 120)</li>
+                                                    <li>• Oxygen as needed</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-blue-50 p-4 rounded-lg">
+                                        <div class="flex items-start">
+                                            <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                                                <svg class="w-5 h-5 text-hospital-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-hospital-primary">Hospital Prep</p>
+                                                <ul class="mt-1 space-y-1 text-sm text-hospital-secondary">
+                                                    <li>• Alert stroke team</li>
+                                                    <li>• Prepare CT scan</li>
+                                                    <li>• Notify neurologist on call</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                                    <h3 class="font-medium text-hospital-primary mb-2">Clinical Notes</h3>
+                                    <p class="text-sm text-hospital-secondary">
+                                        Patient presenting with acute stroke symptoms. Based on symptoms (sudden numbness on right side, slurred speech, facial drooping), likely ischemic stroke. Time-sensitive treatment window. Monitor for signs of deterioration. 
+                                        <span class="text-hospital-accent font-medium">NIH Stroke Scale: 8</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Communication Panel (Future) -->
+                        <div class="bg-white rounded-xl p-5 border border-gray-200">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-hospital-primary mb-1">Communication</h2>
+                                    <p class="text-sm text-hospital-secondary">Connect with response team and Samaritan</p>
+                                </div>
+                                <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-xs font-medium">Coming Soon</span>
+                            </div>
+                            
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <div class="text-center py-8">
+                                    <div class="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                        </svg>
+                                    </div>
+                                    <h3 class="font-medium text-hospital-primary mb-1">Two-way Communication</h3>
+                                    <p class="text-sm text-hospital-secondary mb-4">Connect with ambulance crew and Samaritan in real-time</p>
+                                    <button class="px-4 py-2 bg-hospital-accent text-white rounded-md font-medium text-sm">
+                                        Enable Communication
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

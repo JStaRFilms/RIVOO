@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aura Emergency</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@700;900&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Roboto', 'sans-serif'],
+                        'heading': ['Lato', 'sans-serif']
+                    },
+                    colors: {
+                        'user-primary': '#198754',
+                        'user-emergency': '#c1121f',
+                        'user-text': '#003049',
+                        'user-secondary': '#718096',
+                        'user-bg': '#f8f9fa',
+                        'user-warning': '#ff9f0a',
+                        'user-info': '#0288d1',
+                    },
+                    borderRadius: {
+                        'xl': '1.5rem',
+                        '2xl': '2rem',
+                        '3xl': '2.5rem',
+                        '4xl': '3rem',
+                        'full': '9999px',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            /* Emergency Button Animation */
+            @keyframes pulse {
+                0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(193, 18, 31, 0.7); }
+                70% { transform: scale(1.02); box-shadow: 0 0 0 12px rgba(193, 18, 31, 0); }
+                100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(193, 18, 31, 0); }
+            }
+            
+            .animate-pulse-emergency {
+                animation: pulse 2s infinite;
+            }
+            
+            /* No scrolling - fixed height for mobile */
+            .mobile-screen {
+                height: 100vh;
+                max-height: 100vh;
+                overflow: hidden;
+            }
+            
+            /* Better button proportions */
+            .sos-button {
+                height: 40vh;
+                min-height: 200px;
+                max-height: 350px;
+                width: 80vw;
+                max-width: 400px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-user-bg font-sans mobile-screen">
+    <!-- ONLY visible element on initial load -->
+    <div class="h-full flex flex-col">
+        <!-- Tiny top bar (minimal distraction) -->
+        <div class="pt-4 px-4">
+            <div class="flex justify-between items-center">
+                <div class="w-8 h-8 bg-user-primary rounded-full flex items-center justify-center text-white text-sm">
+                    A
+                </div>
+                <div class="text-xs text-user-secondary font-medium">Aura Emergency</div>
+                <div class="w-8 h-8"></div> <!-- Spacer -->
+            </div>
+        </div>
+        
+        <!-- Large rounded rectangle button (pill shape) -->
+        <div class="flex-1 flex items-center justify-center px-6 py-12">
+            <button id="sosButton" class="sos-button bg-user-emergency text-white font-bold text-3xl rounded-3xl flex items-center justify-center animate-pulse-emergency shadow-2xl focus:outline-none active:scale-95 transition-transform">
+                SOS
+            </button>
+        </div>
+        
+        <!-- ONLY other visible element - "Report for Another" -->
+        <div class="pb-8 px-6">
+            <button id="reportForAnother" class="w-full py-4 bg-user-primary text-white rounded-2xl font-medium text-lg hover:bg-green-600 transition">
+                Report for Another Person
+            </button>
+        </div>
+    </div>
+    
+    <!-- Hidden Emergency Active State (only appears after SOS is pressed) -->
+    <div id="emergencyActive" class="hidden fixed inset-0 bg-white z-50 flex flex-col">
+        <!-- Status Header -->
+        <div class="bg-user-emergency text-white px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-bold">Emergency Active</h1>
+                    <p class="opacity-90">Help is on the way</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold">5:23</div>
+                    <div class="text-xs opacity-80">Response Time</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Critical Information -->
+        <div class="flex-1 flex flex-col justify-center items-center px-6 py-8 text-center">
+            <div class="mb-6">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <svg class="w-8 h-8 text-user-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </div>
+                <p class="text-lg font-medium text-user-text">Your location has been shared</p>
+                <p class="text-user-secondary mt-2">123 Main Street, Apt 5B</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 w-full max-w-md mb-8">
+                <div class="bg-blue-50 p-4 rounded-xl">
+                    <p class="text-sm text-gray-500 mb-1">Response Team</p>
+                    <p class="font-medium text-user-text">Unit 7 - Ambulance</p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-xl">
+                    <p class="text-sm text-gray-500 mb-1">ETA</p>
+                    <p class="font-medium text-user-text">8 min</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="px-6 pb-8">
+            <div class="grid grid-cols-2 gap-4">
+                <button id="cancelEmergency" class="py-4 bg-gray-100 text-user-text rounded-xl font-medium">
+                    Cancel
+                </button>
+                <button class="py-4 bg-user-primary text-white rounded-xl font-medium">
+                    View Details
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden Report for Another Screen -->
+    <div id="reportForAnotherScreen" class="hidden fixed inset-0 bg-white z-50 flex flex-col">
+        <div class="bg-white px-6 py-4 border-b">
+            <div class="flex items-center">
+                <button id="backToMain" class="mr-4 p-2 hover:bg-gray-100 rounded-full">
+                    <svg class="w-6 h-6 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                </button>
+                <h1 class="text-xl font-bold text-user-text">Report for Another</h1>
+            </div>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6">
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-user-text mb-2">Patient Name</label>
+                <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-user-primary focus:border-user-primary" placeholder="Full name">
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-user-text mb-2">Medical Condition</label>
+                <select class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-user-primary focus:border-user-primary">
+                    <option>Select condition</option>
+                    <option>Chest Pain</option>
+                    <option>Difficulty Breathing</option>
+                    <option>Severe Bleeding</option>
+                    <option>Unconscious</option>
+                    <option>Other Emergency</option>
+                </select>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-user-text mb-2">Additional Details</label>
+                <textarea rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-user-primary focus:border-user-primary" placeholder="Describe what's happening..."></textarea>
+            </div>
+            
+            <div class="mb-6 flex items-center">
+                <input type="checkbox" id="shareLocation" class="h-5 w-5 text-user-primary rounded focus:ring-user-primary" checked>
+                <label for="shareLocation" class="ml-3 text-user-text font-medium">Share my current location</label>
+            </div>
+        </div>
+        
+        <div class="px-6 pb-8">
+            <button id="submitReport" class="w-full py-4 bg-user-primary text-white rounded-xl font-medium text-lg">
+                Send Emergency Alert
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Simple state management for demo purposes
+        document.getElementById('sosButton').addEventListener('click', function() {
+            document.querySelector('body').classList.add('overflow-hidden');
+            document.getElementById('emergencyActive').classList.remove('hidden');
+        });
+        
+        document.getElementById('cancelEmergency').addEventListener('click', function() {
+            document.querySelector('body').classList.remove('overflow-hidden');
+            document.getElementById('emergencyActive').classList.add('hidden');
+        });
+        
+        document.getElementById('reportForAnother').addEventListener('click', function() {
+            document.getElementById('reportForAnotherScreen').classList.remove('hidden');
+        });
+        
+        document.getElementById('backToMain').addEventListener('click', function() {
+            document.getElementById('reportForAnotherScreen').classList.add('hidden');
+        });
+        
+        document.getElementById('submitReport').addEventListener('click', function() {
+            document.getElementById('reportForAnotherScreen').classList.add('hidden');
+            document.getElementById('emergencyActive').classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>

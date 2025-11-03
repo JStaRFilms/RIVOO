@@ -18,12 +18,13 @@
   --color-user-info: #0288d1;
 
   /* RIVOO Hospital Portal color tokens */
-  --color-hospital-primary: #2563eb;
+  --color-hospital-primary: #003049;
+  --color-hospital-accent: #0288d1;
+  --color-hospital-alert: #c1121f;
+  --color-hospital-success: #198754;
+  --color-hospital-bg: #f8f9fa;
+  --color-hospital-text: #003049;
   --color-hospital-secondary: #64748b;
-  --color-hospital-accent: #f59e0b;
-  --color-hospital-success: #10b981;
-  --color-hospital-warning: #f59e0b;
-  --color-hospital-error: #ef4444;
 
   /* Font families */
   --font-sans: 'Roboto', 'sans-serif';

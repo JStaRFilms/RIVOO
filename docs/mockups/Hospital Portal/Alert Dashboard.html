@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura - Hospital Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Roboto', 'sans-serif'],
+                        'heading': ['Lato', 'sans-serif']
+                    },
+                    colors: {
+                        // Hospital Portal Colors
+                        'hospital-primary': '#003049',
+                        'hospital-accent': '#0288d1',
+                        'hospital-alert': '#c1121f',
+                        'hospital-success': '#198754',
+                        'hospital-text': '#003049',
+                        'hospital-secondary': '#718096',
+                        'hospital-bg': '#f8f9fa',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .dashboard-container {
+                display: grid;
+                grid-template-columns: 280px 1fr;
+                min-height: 100vh;
+            }
+            
+            .alert-card {
+                transition: all 0.15s ease;
+                break-inside: avoid;
+            }
+            
+            .alert-card:hover {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+                transform: translateY(-2px);
+            }
+            
+            .urgency-critical {
+                border-left: 4px solid theme('colors.hospital-alert');
+            }
+            
+            .urgency-urgent {
+                border-left: 4px solid theme('colors.user-warning');
+            }
+            
+            .urgency-standard {
+                border-left: 4px solid theme('colors.hospital-accent');
+            }
+            
+            .status-badge {
+                padding: 2px 8px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 500;
+                display: inline-block;
+            }
+            
+            .status-new {
+                background-color: rgba(193, 18, 31, 0.1);
+                color: #c1121f;
+            }
+            
+            .status-accepted {
+                background-color: rgba(25, 135, 84, 0.1);
+                color: #198754;
+            }
+        }
+    </style>
+</head>
+<body class="bg-hospital-bg font-sans">
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <div class="bg-hospital-primary h-full min-h-screen p-4">
+            <div class="flex items-center mb-8">
+                <div class="bg-white w-10 h-10 rounded-lg flex items-center justify-center mr-3">
+                    <span class="text-hospital-primary font-bold text-xl">A</span>
+                </div>
+                <h1 class="text-xl font-bold text-white font-heading">Aura Hospital</h1>
+            </div>
+            
+            <ul class="space-y-1">
+                <li class="px-3 py-2.5 bg-white text-hospital-primary rounded-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Alert Dashboard
+                </li>
+                <li class="px-3 py-2.5 text-white hover:bg-blue-800 rounded-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    Active Cases
+                </li>
+                <li class="px-3 py-2.5 text-white hover:bg-blue-800 rounded-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    Patients
+                </li>
+                <li class="px-3 py-2.5 text-white hover:bg-blue-800 rounded-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l2 2 4-4m6 8a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Analytics
+                </li>
+                <li class="px-3 py-2.5 text-white hover:bg-blue-800 rounded-lg font-medium flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.927-1.756 3.353 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.927 0 3.353a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.927 1.756-3.353 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.927 0-3.353a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    Settings
+                </li>
+            </ul>
+            
+            <div class="mt-8 pt-4 border-t border-blue-800">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-hospital-primary font-medium mr-3">DR</div>
+                    <div>
+                        <p class="font-medium text-white">Dr. Rodriguez</p>
+                        <p class="text-sm text-blue-200">ER Lead Physician</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white border-b px-6 py-4 flex items-center justify-between">
+                <div>
+                    <h1 class="text-xl font-bold text-hospital-primary font-heading">Emergency Response Dashboard</h1>
+                    <p class="text-sm text-gray-600">Today's active cases and critical alerts</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-hospital-primary" placeholder="Search cases...">
+                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <button class="p-2 hover:bg-gray-100 rounded-full">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                    </button>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-hospital-accent rounded-full flex items-center justify-center text-white font-medium mr-2">DR</div>
+                        <span class="font-medium text-gray-700">Dr. Rodriguez</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Dashboard Content -->
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-xl p-5 border border-gray-200">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Total Alerts Today</p>
+                                <p class="text-2xl font-bold text-hospital-primary">24</p>
+                            </div>
+                            <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-hospital-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-5 border border-gray-200">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Critical Alerts</p>
+                                <p class="text-2xl font-bold text-hospital-alert">5</p>
+                            </div>
+                            <div class="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-hospital-alert" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-5 border border-gray-200">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Average Response Time</p>
+                                <p class="text-2xl font-bold text-hospital-primary">7m 23s</p>
+                            </div>
+                            <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-hospital-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-5 border border-gray-200">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Available Beds</p>
+                                <p class="text-2xl font-bold text-hospital-primary">8</p>
+                            </div>
+                            <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-user-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filters and Actions -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+                    <div class="flex flex-wrap gap-2">
+                        <button class="px-4 py-2 bg-hospital-primary text-white rounded-md font-medium">All Alerts</button>
+                        <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50">New</button>
+                        <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50">In Progress</button>
+                        <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50">Completed</button>
+                        <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50">Critical Only</button>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        <button class="px-4 py-2 border border-hospital-primary text-hospital-primary rounded-md font-medium flex items-center">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            New Case
+                        </button>
+                        <button class="px-4 py-2 border border-hospital-primary text-hospital-primary rounded-md font-medium flex items-center">
+                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            Export Data
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Alert Columns -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Critical Alerts Column -->
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-bold text-hospital-primary flex items-center">
+                                <span class="w-3 h-3 bg-hospital-alert rounded-full mr-2"></span>
+                                Critical Alerts (5)
+                            </h2>
+                            <span class="text-sm text-hospital-alert font-medium">New</span>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Alert 1 -->
+                            <div class="alert-card bg-white border border-gray-200 rounded-xl overflow-hidden urgency-critical">
+                                <div class="p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h3 class="font-bold text-hospital-primary">Stroke Alert #AUR-456</h3>
+                                            <p class="text-xs text-gray-500">Received: 2 min ago • ETA: 7 min</p>
+                                        </div>
+                                        <span class="status-badge status-new">NEW</span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-3 mb-3 text-sm">
+                                        <div>
+                                            <p class="text-xs text-gray-500">Location</p>
+                                            <p class="font-medium">456 Oak St, Suite 200</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Patient</p>
+                                            <p class="font-medium">Michael T. (45)</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Condition</p>
+                                            <p class="font-medium">Stroke Symptoms</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Priority</p>
+                                            <div class="flex items-center">
+                                                <div class="w-2 h-2 bg-hospital-alert rounded-full mr-1.5"></div>
+                                                <span class="font-medium">Critical</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <button class="py-2 bg-hospital-alert text-white rounded-md text-sm font-medium">Accept</button>
+                                        <button class="py-2 border border-hospital-primary text-hospital-primary rounded-md text-sm font-medium">Details</button>
+                                        <button class="py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Alert 2 -->
+                            <div class="alert-card bg-white border border-gray-200 rounded-xl overflow-hidden urgency-critical">
+                                <div class="p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h3 class="font-bold text-hospital-primary">Chest Pain #AUR-789</h3>
+                                            <p class="text-xs text-gray-500">Received: 8 min ago • ETA: 12 min</p>
+                                        </div>
+                                        <span class="status-badge status-new">NEW</span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-3 mb-3 text-sm">
+                                        <div>
+                                            <p class="text-xs text-gray-500">Location</p>
+                                            <p class="font-medium">789 Pine Ave, Unit 3</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Patient</p>
+                                            <p class="font-medium">Elizabeth C. (62)</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Condition</p>
+                                            <p class="font-medium">Chest Pain</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Priority</p>
+                                            <div class="flex items-center">
+                                                <div class="w-2 h-2 bg-hospital-alert rounded-full mr-1.5"></div>
+                                                <span class="font-medium">Critical</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <button class="py-2 bg-hospital-alert text-white rounded-md text-sm font-medium">Accept</button>
+                                        <button class="py-2 border border-hospital-primary text-hospital-primary rounded-md text-sm font-medium">Details</button>
+                                        <button class="py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Urgent Alerts Column -->
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-bold text-hospital-primary flex items-center">
+                                <span class="w-3 h-3 bg-user-warning rounded-full mr-2"></span>
+                                Urgent Alerts (12)
+                            </h2>
+                            <span class="text-sm text-user-warning font-medium">In Progress</span>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Alert 1 -->
+                            <div class="alert-card bg-white border border-gray-200 rounded-xl overflow-hidden urgency-urgent">
+                                <div class="p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h3 class="font-bold text-hospital-primary">Respiratory Distress #AUR-123</h3>
+                                            <p class="text-xs text-gray-500">Received: 15 min ago • ETA: 18 min</p>
+                                        </div>
+                                        <span class="status-badge status-accepted">ACCEPTED</span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-3 mb-3 text-sm">
+                                        <div>
+                                            <p class="text-xs text-gray-500">Location</p>
+                                            <p class="font-medium">123 Maple Rd, Apt 7B</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Patient</p>
+                                            <p class="font-medium">Robert L. (78)</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Condition</p>
+                                            <p class="font-medium">Respiratory Distress</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Priority</p>
+                                            <div class="flex items-center">
+                                                <div class="w-2 h-2 bg-user-warning rounded-full mr-1.5"></div>
+                                                <span class="font-medium">Urgent</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <button class="py-2 bg-hospital-primary text-white rounded-md text-sm font-medium">Update</button>
+                                        <button class="py-2 border border-hospital-primary text-hospital-primary rounded-md text-sm font-medium">Details</button>
+                                        <button class="py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Alert 2 -->
+                            <div class="alert-card bg-white border border-gray-200 rounded-xl overflow-hidden urgency-urgent">
+                                <div class="p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h3 class="font-bold text-hospital-primary">Fall Injury #AUR-321</h3>
+                                            <p class="text-xs text-gray-500">Received: 22 min ago • ETA: 25 min</p>
+                                        </div>
+                                        <span class="status-badge status-accepted">ACCEPTED</span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-3 mb-3 text-sm">
+                                        <div>
+                                            <p class="text-xs text-gray-500">Location</p>
+                                            <p class="font-medium">321 Elm Street</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Patient</p>
+                                            <p class="font-medium">Patricia M. (68)</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Condition</p>
+                                            <p class="font-medium">Fall Injury</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Priority</p>
+                                            <div class="flex items-center">
+                                                <div class="w-2 h-2 bg-user-warning rounded-full mr-1.5"></div>
+                                                <span class="font-medium">Urgent</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <button class="py-2 bg-hospital-primary text-white rounded-md text-sm font-medium">Update</button>
+                                        <button class="py-2 border border-hospital-primary text-hospital-primary rounded-md text-sm font-medium">Details</button>
+                                        <button class="py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Standard Alerts Column -->
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-bold text-hospital-primary flex items-center">
+                                <span class="w-3 h-3 bg-hospital-accent rounded-full mr-2"></span>
+                                Standard Alerts (7)
+                            </h2>
+                            <span class="text-sm text-gray-500">Completed</span>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- Alert 1 -->
+                            <div class="alert-card bg-white border border-gray-200 rounded-xl overflow-hidden urgency-standard">
+                                <div class="p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h3 class="font-bold text-hospital-primary">Allergic Reaction #AUR-654</h3>
+                                            <p class="text-xs text-gray-500">Received: 45 min ago • Completed</p>
+                                        </div>
+                                        <span class="status-badge status-accepted">COMPLETED</span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-3 mb-3 text-sm">
+                                        <div>
+                                            <p class="text-xs text-gray-500">Location</p>
+                                            <p class="font-medium">654 Birch Lane</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Patient</p>
+                                            <p class="font-medium">James W. (34)</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Condition</p>
+                                            <p class="font-medium">Allergic Reaction</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Priority</p>
+                                            <div class="flex items-center">
+                                                <div class="w-2 h-2 bg-hospital-accent rounded-full mr-1.5"></div>
+                                                <span class="font-medium">Standard</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button class="py-2 border border-hospital-primary text-hospital-primary rounded-md text-sm font-medium">Details</button>
+                                        <button class="py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Alert 2 -->
+                            <div class="alert-card bg-white border border-gray-200 rounded-xl overflow-hidden urgency-standard">
+                                <div class="p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h3 class="font-bold text-hospital-primary">Minor Injury #AUR-987</h3>
+                                            <p class="text-xs text-gray-500">Received: 1 hr ago • Completed</p>
+                                        </div>
+                                        <span class="status-badge status-accepted">COMPLETED</span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-3 mb-3 text-sm">
+                                        <div>
+                                            <p class="text-xs text-gray-500">Location</p>
+                                            <p class="font-medium">987 Cedar Court</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Patient</p>
+                                            <p class="font-medium">Sarah K. (28)</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Condition</p>
+                                            <p class="font-medium">Minor Injury</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">Priority</p>
+                                            <div class="flex items-center">
+                                                <div class="w-2 h-2 bg-hospital-accent rounded-full mr-1.5"></div>
+                                                <span class="font-medium">Standard</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button class="py-2 border border-hospital-primary text-hospital-primary rounded-md text-sm font-medium">Details</button>
+                                        <button class="py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
