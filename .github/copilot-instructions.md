@@ -1,0 +1,1 @@
+This is the **RIVOO** project. Before assisting, please reference the specifications in `/docs/Project_Requirements.md` and adhere to the standards in `/docs/Coding_Guidelines.md`. The database schema is defined in `/prisma/schema.prisma`. All front-end implementation must strictly adhere to the provided HTML mockups in the `/docs/mockups` directory.

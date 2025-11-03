@@ -1,26 +1,50 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Core design tokens used by Tailwind v4 utilities */
+@theme {
+  /* Required core color tokens used by utilities like bg-background, text-foreground, border-border, ring */
+  --color-background: #ffffff;
+  --color-foreground: #0b1221;
+  --color-border: #e5e7eb;
+  --color-ring: #3b82f6;
+
+  /* RIVOO User Portal color tokens */
+  --color-user-primary: #198754;
+  --color-user-emergency: #c1121f;
+  --color-user-text: #003049;
+  --color-user-secondary: #718096;
+  --color-user-bg: #f8f9fa;
+  --color-user-warning: #ff9f0a;
+  --color-user-info: #0288d1;
+
+  /* RIVOO Hospital Portal color tokens */
+  --color-hospital-primary: #2563eb;
+  --color-hospital-secondary: #64748b;
+  --color-hospital-accent: #f59e0b;
+  --color-hospital-success: #10b981;
+  --color-hospital-warning: #f59e0b;
+  --color-hospital-error: #ef4444;
+
+  /* Font families */
+  --font-sans: 'Roboto', 'sans-serif';
+  --font-heading: 'Lato', 'sans-serif';
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Dark-mode overrides (activated by adding class="dark" on <html>) */
+@theme .dark {
+  --color-background: #0b1221;
+  --color-foreground: #e5e7eb;
+  --color-border: #374151;
+  --color-ring: #8b5cf6;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Base layer examples that leverage the tokens */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
 }
