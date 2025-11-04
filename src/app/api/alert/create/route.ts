@@ -50,6 +50,35 @@ export async function POST(request: NextRequest) {
     // Find nearest facility (placeholder implementation)
     const nearestFacilityId = location ? findNearestFacility(location.lat, location.lng) : null;
 
+    // Fetch user's medical profile for SOS alerts
+    let medicalProfile = null;
+    if (type === 'sos') {
+      medicalProfile = await prisma.medicalProfile.findUnique({
+        where: { userId: session.user.id },
+      });
+    }
+
+    // Build description with medical information for SOS alerts
+    let description = details || notes;
+    let medicalNotes = '';
+
+    if (type === 'sos' && medicalProfile) {
+      const medicalInfo = [];
+      if (medicalProfile.bloodType) medicalInfo.push(`Blood Type: ${medicalProfile.bloodType}`);
+      if (medicalProfile.allergies) medicalInfo.push(`Allergies: ${medicalProfile.allergies}`);
+      if (medicalProfile.medications) medicalInfo.push(`Medications: ${medicalProfile.medications}`);
+      if (medicalProfile.conditions) medicalInfo.push(`Conditions: ${medicalProfile.conditions}`);
+      if (medicalProfile.emergencyContactName && medicalProfile.emergencyContactPhone) {
+        medicalInfo.push(`Emergency Contact: ${medicalProfile.emergencyContactName} (${medicalProfile.emergencyContactPhone})`);
+      }
+
+      if (medicalInfo.length > 0) {
+        medicalNotes = `Medical Profile: ${medicalInfo.join(', ')}`;
+      }
+    } else if (patientName) {
+      medicalNotes = `Patient: ${patientName}, Condition: ${condition}`;
+    }
+
     // Create the incident
     const incident = await prisma.incident.create({
       data: {
@@ -60,8 +89,8 @@ export async function POST(request: NextRequest) {
         locationLat: location?.lat || 0,
         locationLng: location?.lng || 0,
         address: location?.address,
-        description: details || notes,
-        notes: patientName ? `Patient: ${patientName}, Condition: ${condition}` : undefined,
+        description: description,
+        notes: medicalNotes || undefined,
       },
     });
 

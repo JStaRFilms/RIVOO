@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 interface Incident {
@@ -26,6 +26,7 @@ export default function UserDashboard() {
     shareLocation: true,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -129,9 +130,12 @@ export default function UserDashboard() {
           {/* Top Bar */}
           <div className="pt-4 px-4">
             <div className="flex justify-between items-center">
-              <div className="w-8 h-8 bg-user-primary rounded-full flex items-center justify-center text-white text-sm font-bold">
-                R
-              </div>
+              <button
+                onClick={() => setShowProfileMenu(true)}
+                className="w-8 h-8 bg-user-primary rounded-full flex items-center justify-center text-white text-sm font-bold hover:bg-user-primary/90 transition"
+              >
+                {session.user?.name?.charAt(0) || 'U'}
+              </button>
               <div className="text-xs text-user-secondary font-medium">RIVOO Emergency</div>
               <div className="w-8 h-8"></div>
             </div>
@@ -309,6 +313,83 @@ export default function UserDashboard() {
               {isLoading ? 'Sending...' : 'Send Emergency Alert'}
             </button>
           </form>
+        </div>
+      )}
+
+      {/* Profile Menu Overlay */}
+      {showProfileMenu && (
+        <div className="fixed inset-0 bg-white z-50 flex flex-col">
+          {/* Close button */}
+          <div className="flex justify-end p-4">
+            <button
+              onClick={() => setShowProfileMenu(false)}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <svg className="w-6 h-6 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+
+          {/* Profile Content */}
+          <div className="flex-1 flex flex-col items-center justify-center px-6">
+            {/* Profile Picture */}
+            <div className="w-20 h-20 bg-user-primary rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4">
+              {session.user?.name?.charAt(0) || 'U'}
+            </div>
+
+            {/* User Name */}
+            <h2 className="text-xl font-bold text-user-text mb-8">
+              {session.user?.name || 'User'}
+            </h2>
+
+            {/* Menu Options */}
+            <div className="w-full max-w-sm space-y-3">
+              <button
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  router.push('/user/profile');
+                }}
+                className="w-full py-4 px-6 bg-user-primary text-white rounded-2xl font-medium text-lg hover:bg-green-600 transition"
+              >
+                View Profile
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  // Add other menu options here if needed
+                }}
+                className="w-full py-4 px-6 bg-gray-100 text-user-text rounded-2xl font-medium text-lg hover:bg-gray-200 transition"
+              >
+                Settings
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  // Add help/support option
+                }}
+                className="w-full py-4 px-6 bg-gray-100 text-user-text rounded-2xl font-medium text-lg hover:bg-gray-200 transition"
+              >
+                Help & Support
+              </button>
+
+              <button
+                onClick={() => {
+                  // Sign out
+                  setShowProfileMenu(false);
+                  // Small delay to allow menu to close
+                  setTimeout(() => {
+                    signOut({ callbackUrl: '/auth/signin' });
+                  }, 100);
+                }}
+                className="w-full py-4 px-6 bg-user-emergency text-white rounded-2xl font-medium text-lg hover:bg-red-700 transition"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
