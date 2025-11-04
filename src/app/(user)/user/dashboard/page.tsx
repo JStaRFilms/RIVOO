@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
@@ -27,12 +27,46 @@ export default function UserDashboard() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin');
     }
   }, [status, router]);
+
+  // Start polling for incident status updates when an incident is active
+  useEffect(() => {
+    // Clear any existing polling
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+
+    if (currentIncident) {
+      const pollStatus = async () => {
+        try {
+          const response = await fetch(`/api/incidents/${currentIncident.id}`);
+          if (response.ok) {
+            const updatedIncident = await response.json();
+            setCurrentIncident(updatedIncident);
+          }
+        } catch (error) {
+          console.error('Failed to fetch incident status:', error);
+        }
+      };
+
+      // Only set up interval - don't poll immediately to avoid triggering re-runs
+      pollingIntervalRef.current = setInterval(pollStatus, 5000);
+    }
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [currentIncident?.id]); // Only depend on incident ID, not the entire object
 
   const handleSOS = async () => {
     setIsLoading(true);
@@ -108,6 +142,23 @@ export default function UserDashboard() {
 
   const cancelEmergency = () => {
     setCurrentIncident(null);
+  };
+
+  const getStatusMessage = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return 'Alert Sent';
+      case 'ASSIGNED':
+        return 'Hospital Responding';
+      case 'IN_PROGRESS':
+        return 'Ambulance Dispatched';
+      case 'RESOLVED':
+        return 'Emergency Resolved';
+      case 'CANCELLED':
+        return 'Emergency Cancelled';
+      default:
+        return 'Emergency Active';
+    }
   };
 
   if (status === 'loading') {
@@ -206,7 +257,7 @@ export default function UserDashboard() {
             <div className="grid grid-cols-2 gap-4 w-full max-w-md mb-8">
               <div className="bg-blue-50 p-4 rounded-xl">
                 <p className="text-sm text-gray-500 mb-1">Status</p>
-                <p className="font-medium text-user-text capitalize">{currentIncident.status.replace('_', ' ')}</p>
+                <p className="font-medium text-user-text">{getStatusMessage(currentIncident.status)}</p>
               </div>
               <div className="bg-blue-50 p-4 rounded-xl">
                 <p className="text-sm text-gray-500 mb-1">Reported</p>
