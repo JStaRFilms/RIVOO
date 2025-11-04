@@ -48,7 +48,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Find nearest facility (placeholder implementation)
-    const nearestFacilityId = location ? findNearestFacility(location.lat, location.lng) : null;
+    // For now, we'll set facilityId to null since we don't have facilities in the database
+    const nearestFacilityId = null; // location ? findNearestFacility(location.lat, location.lng) : null;
 
     // Fetch user's medical profile for SOS alerts
     let medicalProfile = null;
@@ -64,16 +65,36 @@ export async function POST(request: NextRequest) {
 
     if (type === 'sos' && medicalProfile) {
       const medicalInfo = [];
+
+      // Helper function to parse stored medical data (could be JSON or comma-separated)
+      const parseMedicalData = (value: string | null): string[] => {
+        if (!value) return [];
+        try {
+          // Try to parse as JSON first
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? parsed : [value];
+        } catch {
+          // If not JSON, split by comma
+          return value.split(',').map(s => s.trim()).filter(s => s);
+        }
+      };
+
       if (medicalProfile.bloodType) medicalInfo.push(`Blood Type: ${medicalProfile.bloodType}`);
-      if (medicalProfile.allergies) medicalInfo.push(`Allergies: ${medicalProfile.allergies}`);
+
+      const allergies = parseMedicalData(medicalProfile.allergies);
+      if (allergies.length > 0) medicalInfo.push(`Allergies: ${allergies.join(', ')}`);
+
       if (medicalProfile.medications) medicalInfo.push(`Medications: ${medicalProfile.medications}`);
-      if (medicalProfile.conditions) medicalInfo.push(`Conditions: ${medicalProfile.conditions}`);
+
+      const conditions = parseMedicalData(medicalProfile.conditions);
+      if (conditions.length > 0) medicalInfo.push(`Conditions: ${conditions.join(', ')}`);
+
       if (medicalProfile.emergencyContactName && medicalProfile.emergencyContactPhone) {
         medicalInfo.push(`Emergency Contact: ${medicalProfile.emergencyContactName} (${medicalProfile.emergencyContactPhone})`);
       }
 
       if (medicalInfo.length > 0) {
-        medicalNotes = `Medical Profile: ${medicalInfo.join(', ')}`;
+        medicalNotes = `Medical Profile: ${medicalInfo.join('; ')}`;
       }
     } else if (patientName) {
       medicalNotes = `Patient: ${patientName}, Condition: ${condition}`;

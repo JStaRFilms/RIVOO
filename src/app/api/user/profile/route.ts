@@ -72,10 +72,6 @@ export async function PUT(request: NextRequest) {
       return null;
     };
 
-    // Handle emergency contacts - for now, keep as simple name/phone fields
-    // TODO: Update schema to support multiple contacts as JSON
-    const primaryContact = emergencyContacts && emergencyContacts.length > 0 ? emergencyContacts[0] : null;
-
     const updatedProfile = await prisma.medicalProfile.update({
       where: { userId: session.user.id },
       data: {
@@ -84,8 +80,7 @@ export async function PUT(request: NextRequest) {
         allergies: serializeArray(allergies),
         medications: medications || null,
         conditions: serializeArray(conditions),
-        emergencyContactName: primaryContact?.name || null,
-        emergencyContactPhone: primaryContact?.phone || null,
+        emergencyContacts: emergencyContacts && emergencyContacts.length > 0 ? JSON.stringify(emergencyContacts) : null,
         updatedAt: new Date(),
       },
     });

@@ -80,7 +80,8 @@ model MedicalProfile {
   allergies     String?
   medications   String?
   conditions    String?
-  emergencyContactName  String?  @map("emergency_contact_name")
+  emergencyContacts    String?  @map("emergency_contacts") // JSON string for multiple contacts
+  emergencyContactName  String?  @map("emergency_contact_name") // Legacy single contact fields
   emergencyContactPhone String?  @map("emergency_contact_phone")
   user          User      @relation(fields: [userId], references: [id])
   createdAt     DateTime  @default(now()) @map("created_at")

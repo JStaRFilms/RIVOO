@@ -30,6 +30,7 @@ interface EmergencyContact {
   phone: string;
   email?: string;
   relationship?: string;
+  isEditing?: boolean;
 }
 
 export default function ProfilePage() {
@@ -96,13 +97,22 @@ export default function ProfilePage() {
             id: `condition-${index}`,
             name: condition
           })),
-          emergencyContacts: data.emergencyContacts ? data.emergencyContacts.map((contact: any, index: number) => ({
-            id: `contact-${index}`,
-            name: contact.name,
-            phone: contact.phone,
-            email: contact.email || '',
-            relationship: contact.relationship || ''
-          })) : [],
+          emergencyContacts: data.emergencyContacts ? (() => {
+            try {
+              const parsed = typeof data.emergencyContacts === 'string'
+                ? JSON.parse(data.emergencyContacts)
+                : data.emergencyContacts;
+              return Array.isArray(parsed) ? parsed.map((contact: any, index: number) => ({
+                id: `contact-${index}`,
+                name: contact.name,
+                phone: contact.phone,
+                email: contact.email || '',
+                relationship: contact.relationship || ''
+              })) : [];
+            } catch {
+              return [];
+            }
+          })() : [],
         });
       }
     } catch (error) {
@@ -184,6 +194,15 @@ export default function ProfilePage() {
       ...prev,
       emergencyContacts: prev.emergencyContacts.map(contact =>
         contact.id === id ? { ...contact, [field]: value } : contact
+      )
+    }));
+  };
+
+  const toggleEditEmergencyContact = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      emergencyContacts: prev.emergencyContacts.map(contact =>
+        contact.id === id ? { ...contact, isEditing: !contact.isEditing } : contact
       )
     }));
   };
@@ -418,36 +437,96 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 {formData.emergencyContacts.map((contact) => (
                   <div key={contact.id} className="bg-gray-50 rounded-xl p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <p className="font-medium text-user-text">{contact.relationship || 'Contact'}</p>
-                        <p className="text-sm text-user-secondary">{contact.name || 'Name not provided'}</p>
+                    {contact.isEditing ? (
+                      // Edit mode
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <h3 className="font-medium text-user-text">Edit Contact</h3>
+                          <div className="flex space-x-2">
+                            <button
+                              type="button"
+                              onClick={() => toggleEditEmergencyContact(contact.id)}
+                              className="px-3 py-1 bg-user-primary text-white rounded-lg text-sm hover:bg-green-600 transition"
+                            >
+                              Done
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeEmergencyContact(contact.id)}
+                              className="p-1 hover:bg-gray-200 rounded"
+                            >
+                              <svg className="w-5 h-5 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3">
+                          <input
+                            type="text"
+                            placeholder="Full Name"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-user-primary focus:border-transparent"
+                            value={contact.name}
+                            onChange={(e) => updateEmergencyContact(contact.id, 'name', e.target.value)}
+                          />
+                          <input
+                            type="tel"
+                            placeholder="Phone Number"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-user-primary focus:border-transparent"
+                            value={contact.phone}
+                            onChange={(e) => updateEmergencyContact(contact.id, 'phone', e.target.value)}
+                          />
+                          <input
+                            type="email"
+                            placeholder="Email (optional)"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-user-primary focus:border-transparent"
+                            value={contact.email}
+                            onChange={(e) => updateEmergencyContact(contact.id, 'email', e.target.value)}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Relationship (e.g., Spouse, Parent, Friend)"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-user-primary focus:border-transparent"
+                            value={contact.relationship}
+                            onChange={(e) => updateEmergencyContact(contact.id, 'relationship', e.target.value)}
+                          />
+                        </div>
                       </div>
-                      <div className="flex space-x-2">
-                        <button
-                          type="button"
-                          className="p-1 hover:bg-gray-200 rounded"
-                          onClick={() => {/* TODO: Edit functionality */}}
-                        >
-                          <svg className="w-5 h-5 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                          </svg>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeEmergencyContact(contact.id)}
-                          className="p-1 hover:bg-gray-200 rounded"
-                        >
-                          <svg className="w-5 h-5 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                    <div className="pl-2 border-l-2 border-user-primary">
-                      <p className="text-sm text-user-text">{contact.phone || 'Phone not provided'}</p>
-                      {contact.email && <p className="text-sm text-user-secondary">{contact.email}</p>}
-                    </div>
+                    ) : (
+                      // Display mode
+                      <>
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <p className="font-medium text-user-text">{contact.relationship || 'Contact'}</p>
+                            <p className="text-sm text-user-secondary">{contact.name || 'Name not provided'}</p>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              type="button"
+                              className="p-1 hover:bg-gray-200 rounded"
+                              onClick={() => toggleEditEmergencyContact(contact.id)}
+                            >
+                              <svg className="w-5 h-5 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeEmergencyContact(contact.id)}
+                              className="p-1 hover:bg-gray-200 rounded"
+                            >
+                              <svg className="w-5 h-5 text-user-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                        <div className="pl-2 border-l-2 border-user-primary">
+                          <p className="text-sm text-user-text">{contact.phone || 'Phone not provided'}</p>
+                          {contact.email && <p className="text-sm text-user-secondary">{contact.email}</p>}
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
 
