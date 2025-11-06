@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap');
+
+:root {
+  --sea-green: #198754;
+  --fire-brick: #c1121f;
+  --prussian-blue: #003049;
+  --slate-gray: #718096;
+  --seasalt: #f8f9fa;
+  --orange-peel: #ff9f0a;
+  --blue-ncs: #0288d1;
+}
+
+.font-lato { font-family: 'Lato', sans-serif; }
+.font-roboto { font-family: 'Roboto', sans-serif; }
+
+/* Note: If you are using TailwindCSS, a better practice is to 
+  add these colors to your tailwind.config.js file.
+*/
+.text-sea-green { color: var(--sea-green); }
+.bg-sea-green { background-color: var(--sea-green); }
+.text-fire-brick { color: var(--fire-brick); }
+.bg-fire-brick { background-color: var(--fire-brick); }
+.text-prussian-blue { color: var(--prussian-blue); }
+.bg-prussian-blue { background-color: var(--prussian-blue); }
+.text-slate-gray { color: var(--slate-gray); }
+.bg-slate-gray { background-color: var(--slate-gray); }
+.bg-seasalt { background-color: var(--seasalt); }
+.text-orange-peel { color: var(--orange-peel); }
+.bg-orange-peel { background-color: var(--orange-peel); }
+.text-blue-ncs { color: var(--blue-ncs); }
+.bg-blue-ncs { background-color: var(--blue-ncs); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
