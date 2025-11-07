@@ -24,15 +24,10 @@ function getDistanceInMeters(
   return R * c;
 }
 
-// Simple ID generator
-function generatePublicId() {
-  const prefix = "LAG-";
-  const chars = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
-  let result = "";
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return prefix + result;
+// Helper to format incident ID for display
+function formatIncidentId(id: string) {
+  // Take last 8 characters of UUID and format nicely
+  return `LAG-${id.slice(-8).toUpperCase()}`;
 }
 
 // Helper to extract coordinates from PostGIS geography

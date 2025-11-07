@@ -1,125 +1,61 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
-interface UpdateIncidentRequest {
-  status?: string;
-  assignedToId?: string;
-  notes?: string;
-}
-
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await params;
-    const body: UpdateIncidentRequest = await request.json();
-    const { status, assignedToId, notes } = body;
+    // Get URL parameters for filtering
+    const { searchParams } = new URL(req.url);
+    const status = searchParams.get('status');
 
-    const updateData: any = {};
-
+    // Build query conditions
+    const where: any = {};
+    
+    // For hospital staff, only show incidents assigned to their facility
+    // For now, we'll show all pending/unassigned incidents for matching
     if (status) {
-      updateData.status = status;
-      if (status === 'ASSIGNED') {
-        updateData.acceptedAt = new Date();
-      } else if (status === 'RESOLVED') {
-        updateData.resolvedAt = new Date();
-      }
+      where.status = status;
     }
 
-    if (assignedToId) {
-      updateData.assignedToId = assignedToId;
-    }
-
-    if (notes) {
-      updateData.notes = notes;
-    }
-
-    const incident = await prisma.incident.update({
-      where: { id },
-      data: updateData,
+    // Fetch incidents with user details
+    const incidents = await prisma.incident.findMany({
+      where,
       include: {
         user: {
           select: {
+            id: true,
             name: true,
             email: true,
           },
         },
-      },
-    });
-
-    return NextResponse.json(incident);
-  } catch (error) {
-    console.error('Error updating incident:', error);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const { id } = await params;
-
-    const incident = await prisma.incident.findUnique({
-      where: { id },
-      include: {
-        user: {
+        facility: {
           select: {
+            id: true,
             name: true,
-            email: true,
-          },
-        },
-        facility: true,
-        assignedTo: {
-          include: {
-            user: {
-              select: {
-                name: true,
-                email: true,
-              },
-            },
+            address: true,
+            city: true,
+            phone: true,
           },
         },
       },
+      orderBy: [
+        { priority: 'desc' },
+        { createdAt: 'desc' },
+      ],
     });
 
-    if (!incident) {
-      return NextResponse.json(
-        { message: 'Incident not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(incident);
+    return NextResponse.json(incidents);
   } catch (error) {
-    console.error('Error fetching incident:', error);
+    console.error("Get Incidents Error:", error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

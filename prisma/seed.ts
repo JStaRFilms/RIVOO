@@ -14,6 +14,15 @@ const facilityData = [
     coords: [3.4735, 6.4385] // [lng, lat]
   },
   {
+    name: 'Mother and Child Hospital',
+    address: '15 Admiralty Way, Lekki Phase 1',
+    city: 'Lagos',
+    state: 'Lagos',
+    postalCode: '101245',
+    phone: '+234-803-123-4547',
+    coords: [3.4735, 6.4385] // [lng, lat]
+  },
+  {
     name: 'Ikoyi Specialist Hospital',
     address: '32 Kingsway Road, Ikoyi',
     city: 'Lagos',
@@ -74,10 +83,6 @@ async function main() {
         NOW(),
         NOW()
       )
-      ON CONFLICT (name) DO UPDATE SET
-        address = EXCLUDED.address,
-        location = EXCLUDED.location,
-        updated_at = NOW()
     `;
     console.log(`✅ Seeded: ${f.name}`);
   }
