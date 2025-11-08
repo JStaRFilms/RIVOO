@@ -120,22 +120,37 @@ export async function POST(req: Request) {
       };
     });
 
-    // Update incident with nearest facility
+    // Automatically assign to nearest facility
     if (formattedFacilities.length > 0) {
       await prisma.incident.update({
         where: { id: newIncident.id },
         data: {
           facilityId: formattedFacilities[0].id,
-          status: 'ASSIGNED',
         },
       });
     }
 
+    // Fetch the updated incident with facility info
+    const updatedIncident = await prisma.incident.findUnique({
+      where: { id: newIncident.id },
+      include: {
+        facility: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            city: true,
+            phone: true,
+          },
+        },
+      },
+    });
+
     return NextResponse.json(
       { 
         incident: {
-          ...newIncident,
-          publicId: newIncident.id, // Use the UUID as public ID for now
+          ...(updatedIncident || newIncident),
+          displayId: formatIncidentId(newIncident.id), // Add formatted display ID
         },
         facilities: formattedFacilities 
       },

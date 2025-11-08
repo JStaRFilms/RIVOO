@@ -33,8 +33,6 @@
   --font-sans: 'Roboto', 'sans-serif';
   --font-heading: 'Lato', 'sans-serif';
   
-.font-lato { font-family: 'Lato', sans-serif; }
-.font-roboto { font-family: 'Roboto', sans-serif; }
 }
 :root {
   --sea-green: #198754;
@@ -84,5 +82,7 @@
 .bg-orange-peel { background-color: var(--orange-peel); }
 .text-blue-ncs { color: var(--blue-ncs); }
 .bg-blue-ncs { background-color: var(--blue-ncs); }
+.font-lato { font-family: 'Lato', sans-serif; }
+.font-roboto { font-family: 'Roboto', sans-serif; }
 }
   

@@ -27,10 +27,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
   const [location, setLocation] = useState<Location | null>(null);
   const [liveCase, setLiveCase] = useState<LiveCase | null>(null);
 
-  const [recentAlerts, setRecentAlerts] = useState<Alert[]>([
-    { date: 'Nov 3', alert: 'Breathing Issue', status: 'Resolved', hospital: 'Lagoon', id: 'RIV-054' },
-    { date: 'Nov 3', alert: 'Road Injury', status: 'Declined', hospital: 'Lagoon', id: 'RIV-045' },
-  ]);
+  const [recentAlerts, setRecentAlerts] = useState<Alert[]>([]);
 
   const healthInfo: HealthInfo = {
     bloodType: '0+',
@@ -54,6 +51,64 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
       );
     }
   }, []);
+
+  // Load recent alerts from localStorage and database on mount
+  useEffect(() => {
+    const loadRecentAlerts = async () => {
+      try {
+        // First try to load from localStorage (fast)
+        const savedAlerts = localStorage.getItem('recent-alerts');
+        if (savedAlerts) {
+          const alerts = JSON.parse(savedAlerts);
+          setRecentAlerts(alerts);
+        }
+      } catch (error) {
+        console.log('No saved alerts found or error loading:', error);
+      }
+      
+      // Then fetch from API to sync with database (accurate)
+      try {
+        const response = await fetch('/api/user/incidents');
+        if (response.ok) {
+          const incidents = await response.json();
+          
+          // Convert incidents to alert format
+          const alertsFromDB: Alert[] = incidents.map((incident: any) => ({
+            date: new Date(incident.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            alert: incident.description || 'Emergency SOS',
+            status: incident.status === 'RESOLVED' ? 'Resolved' 
+                  : incident.status === 'IN_PROGRESS' ? 'En Route'
+                  : incident.status === 'ASSIGNED' ? 'Accepted'
+                  : incident.status === 'CANCELLED' ? 'Cancelled'
+                  : 'Pending',
+            hospital: incident.facility?.name || 'Matching...',
+            id: incident.id,
+          }));
+          
+          // Update state and localStorage with synced data
+          setRecentAlerts(alertsFromDB);
+          if (alertsFromDB.length > 0) {
+            localStorage.setItem('recent-alerts', JSON.stringify(alertsFromDB));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch incidents from API:', error);
+      }
+    };
+    
+    loadRecentAlerts();
+  }, []);
+
+  // Save recent alerts to localStorage whenever they change
+  useEffect(() => {
+    if (recentAlerts.length > 0) {
+      try {
+        localStorage.setItem('recent-alerts', JSON.stringify(recentAlerts));
+      } catch (error) {
+        console.error('Failed to save alerts:', error);
+      }
+    }
+  }, [recentAlerts]);
 
   // Poll for incident status updates
   useEffect(() => {
@@ -84,14 +139,41 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
           // Hospital has accepted
           console.log('✅ Hospital accepted! Moving to Accepted state');
           setLiveCase(prev => prev ? { ...prev, progress: 1 } : null);
+          
+          // Update the alert status in recent alerts
+          setRecentAlerts(prev => 
+            prev.map(alert => 
+              alert.id === liveCase.caseId 
+                ? { ...alert, status: 'Accepted' }
+                : alert
+            )
+          );
         } else if (incident.status === 'IN_PROGRESS' && liveCase.progress === 1) {
           // Ambulance en route
           console.log('🚑 Ambulance dispatched! Moving to En Route state');
           setLiveCase(prev => prev ? { ...prev, progress: 2 } : null);
+          
+          // Update the alert status in recent alerts
+          setRecentAlerts(prev => 
+            prev.map(alert => 
+              alert.id === liveCase.caseId 
+                ? { ...alert, status: 'En Route' }
+                : alert
+            )
+          );
         } else if (incident.status === 'RESOLVED') {
           // Case completed
           console.log('✅ Case resolved! Moving to Completed state');
           setLiveCase(prev => prev ? { ...prev, progress: 3 } : null);
+          
+          // Update the alert status in recent alerts
+          setRecentAlerts(prev => 
+            prev.map(alert => 
+              alert.id === liveCase.caseId 
+                ? { ...alert, status: 'Resolved' }
+                : alert
+            )
+          );
           clearInterval(pollInterval);
         }
       } catch (error) {

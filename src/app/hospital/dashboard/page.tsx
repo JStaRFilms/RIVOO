@@ -8,7 +8,7 @@ interface Incident {
   id: string;
   status: string;
   priority: string;
-  user: {
+  user?: {
     id: string;
     name?: string;
     email: string;
@@ -71,16 +71,55 @@ export default function HospitalDashboard() {
   const updateIncidentStatus = async (incidentId: string, newStatus: string) => {
     setUpdatingId(incidentId);
     try {
-      const response = await fetch(`/api/incidents/${incidentId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
+      let response;
+      
+      // Use specific endpoints based on the action
+      if (newStatus === 'ASSIGNED') {
+        // Accept the incident
+        response = await fetch(`/api/incidents/${incidentId}/accept`, {
+          method: 'POST',
+        });
+      } else if (newStatus === 'IN_PROGRESS') {
+        // Dispatch ambulance
+        response = await fetch(`/api/incidents/${incidentId}/accept`, {
+          method: 'PATCH',
+        });
+      } else if (newStatus === 'RESOLVED') {
+        // Complete the case
+        response = await fetch(`/api/incidents/${incidentId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'RESOLVED' }),
+        });
+      } else {
+        // Generic update
+        response = await fetch(`/api/incidents/${incidentId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus }),
+        });
+      }
 
       if (response.ok) {
+        try {
+          const data = await response.json();
+          console.log('✅ Incident updated:', data);
+        } catch (e) {
+          console.log('✅ Incident updated (no JSON response)');
+        }
         fetchIncidents(); // Refresh the list
       } else {
-        alert('Failed to update incident status');
+        // Try to parse error, but handle empty responses
+        let errorMessage = 'Unknown error';
+        try {
+          const error = await response.json();
+          errorMessage = error.error || error.details || errorMessage;
+        } catch (e) {
+          // If we can't parse JSON, use the status text
+          errorMessage = `${response.status} ${response.statusText}`;
+        }
+        console.error('Failed to update incident:', errorMessage);
+        alert(`Failed to update: ${errorMessage}`);
       }
     } catch (error) {
       console.error('Failed to update incident:', error);
@@ -123,9 +162,24 @@ export default function HospitalDashboard() {
 
   const getNextStatus = (currentStatus: string) => {
     switch (currentStatus) {
-      case 'PENDING': return { status: 'ASSIGNED', label: 'Accept' };
-      case 'ASSIGNED': return { status: 'IN_PROGRESS', label: 'Dispatch' };
-      case 'IN_PROGRESS': return { status: 'RESOLVED', label: 'Complete' };
+      case 'PENDING': 
+        return { 
+          status: 'ASSIGNED', 
+          label: '✅ Accept Case',
+          color: 'bg-green-600 hover:bg-green-700'
+        };
+      case 'ASSIGNED': 
+        return { 
+          status: 'IN_PROGRESS', 
+          label: '🚑 Dispatch Ambulance',
+          color: 'bg-blue-600 hover:bg-blue-700'
+        };
+      case 'IN_PROGRESS': 
+        return { 
+          status: 'RESOLVED', 
+          label: '✔️ Mark Complete',
+          color: 'bg-purple-600 hover:bg-purple-700'
+        };
       default: return null;
     }
   };
@@ -168,14 +222,17 @@ export default function HospitalDashboard() {
             </div>
             <div>
               <p className="text-xs text-gray-500">Patient</p>
-              <p className="font-medium text-xs truncate">{incident.user.name || incident.user.email}</p>
+              <p className="font-medium text-xs truncate">
+                {incident.user?.name || incident.user?.email || 'Unknown Patient'}
+              </p>
             </div>
           </div>
           
           {incident.facility && (
-            <div>
-              <p className="text-xs text-gray-500">Assigned To</p>
-              <p className="font-medium text-xs">{incident.facility.name}</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2">
+              <p className="text-xs text-blue-700 font-medium">
+                📍 Assigned to: {incident.facility.name}
+              </p>
             </div>
           )}
           
@@ -192,15 +249,9 @@ export default function HospitalDashboard() {
             <button
               onClick={() => updateIncidentStatus(incident.id, nextStatus.status)}
               disabled={isUpdating}
-              className={`py-2 ${
-                nextStatus.status === 'ASSIGNED' 
-                  ? 'bg-red-600 hover:bg-red-700' 
-                  : nextStatus.status === 'IN_PROGRESS'
-                  ? 'bg-blue-600 hover:bg-blue-700'
-                  : 'bg-green-600 hover:bg-green-700'
-              } text-white rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
+              className={`py-2 ${nextStatus.color} text-white rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
             >
-              {isUpdating ? 'Updating...' : nextStatus.label}
+              {isUpdating ? '⏳ Updating...' : nextStatus.label}
             </button>
           )}
           <button 
@@ -210,7 +261,7 @@ export default function HospitalDashboard() {
             }}
             className="py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-md text-sm font-medium transition-colors"
           >
-            View Map
+            🗺️ View Map
           </button>
         </div>
       </div>
