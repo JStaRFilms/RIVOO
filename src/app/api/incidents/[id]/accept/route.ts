@@ -1,25 +1,58 @@
+// app/api/incidents/[id]/accept/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// POST to accept an incident (Next.js 15 compatible)
+// POST to accept an incident
 export async function POST(
   req: Request,
-  context: { params: Promise<{ id: string }> | { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
+
+    console.log('🔐 Session:', session?.user);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Handle both Next.js 14 and 15 params format
-    const params = 'then' in context.params ? await context.params : context.params;
-    const { id } = params;
+    // ✅ FIX: Await params in Next.js 15
+    const { id } = await context.params;
 
-    console.log('Attempting to accept incident:', id);
+    console.log('🚨 Accepting incident:', id);
+
+    // ✅ Get user and check if they're hospital staff
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+
+    console.log('👤 User found:', { id: user?.id, role: user?.role });
+
+    if (!user || user.role !== 'HOSPITAL_STAFF') {
+      return NextResponse.json(
+        { error: "Only hospital staff can accept incidents" },
+        { status: 403 }
+      );
+    }
+
+    // ✅ Separately query for facility user info
+    const facilityUser = await prisma.facilityUser.findUnique({
+      where: { userId: user.id },
+      include: {
+        facility: true
+      }
+    });
+
+    console.log('🏥 Facility user found:', facilityUser?.id);
+
+    if (!facilityUser) {
+      return NextResponse.json(
+        { error: "Staff member not associated with any facility" },
+        { status: 403 }
+      );
+    }
 
     // Find the incident
     const incident = await prisma.incident.findUnique({
@@ -27,14 +60,13 @@ export async function POST(
     });
 
     if (!incident) {
-      console.error('Incident not found:', id);
       return NextResponse.json(
         { error: "Incident not found" },
         { status: 404 }
       );
     }
 
-    console.log('Current incident status:', incident.status);
+    console.log('📋 Incident current status:', incident.status);
 
     // Check if incident is still pending
     if (incident.status !== 'PENDING') {
@@ -44,11 +76,13 @@ export async function POST(
       );
     }
 
-    // Update incident status to ASSIGNED
+    // ✅ Update incident with all required fields
     const updatedIncident = await prisma.incident.update({
       where: { id },
       data: {
         status: 'ASSIGNED',
+        facilityId: facilityUser.facilityId,
+        assignedToId: facilityUser.id,
         acceptedAt: new Date(),
       },
       include: {
@@ -68,20 +102,37 @@ export async function POST(
             phone: true,
           },
         },
+        assignedTo: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              }
+            },
+            facility: {
+              select: {
+                id: true,
+                name: true,
+              }
+            }
+          }
+        }
       },
     });
 
-    console.log(`✅ Incident ${id} accepted by hospital staff`);
+    console.log(`✅ Incident ${id} accepted successfully by ${user.name} at ${facilityUser.facility.name}`);
 
     return NextResponse.json({ 
       success: true,
       incident: updatedIncident 
     });
   } catch (error) {
-    console.error("Accept Incident Error:", error);
+    console.error("❌ Accept Incident Error:", error);
     
+    // ✅ Detailed error logging
     if (error instanceof Error) {
-      console.error("Error name:", error.name);
       console.error("Error message:", error.message);
       console.error("Error stack:", error.stack);
     }
@@ -89,17 +140,19 @@ export async function POST(
     return NextResponse.json(
       { 
         error: "Internal Server Error",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: process.env.NODE_ENV === 'development' 
+          ? (error instanceof Error ? error.message : "Unknown error")
+          : "An error occurred"
       },
       { status: 500 }
     );
   }
 }
 
-// PATCH to dispatch ambulance (move to IN_PROGRESS) (Next.js 15 compatible)
+// PATCH to dispatch ambulance (move to IN_PROGRESS)
 export async function PATCH(
   req: Request,
-  context: { params: Promise<{ id: string }> | { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -108,11 +161,20 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Handle both Next.js 14 and 15 params format
-    const params = 'then' in context.params ? await context.params : context.params;
-    const { id } = params;
+    // ✅ FIX: Await params in Next.js 15
+    const { id } = await context.params;
 
-    console.log('Attempting to dispatch for incident:', id);
+    // ✅ Verify user is hospital staff
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+
+    if (!user || user.role !== 'HOSPITAL_STAFF') {
+      return NextResponse.json(
+        { error: "Only hospital staff can dispatch ambulances" },
+        { status: 403 }
+      );
+    }
 
     // Find the incident
     const incident = await prisma.incident.findUnique({
@@ -120,14 +182,11 @@ export async function PATCH(
     });
 
     if (!incident) {
-      console.error('Incident not found:', id);
       return NextResponse.json(
         { error: "Incident not found" },
         { status: 404 }
       );
     }
-
-    console.log('Current incident status:', incident.status);
 
     // Check if incident has been accepted
     if (incident.status === 'PENDING') {
@@ -167,6 +226,17 @@ export async function PATCH(
             phone: true,
           },
         },
+        assignedTo: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              }
+            }
+          }
+        }
       },
     });
 
@@ -179,16 +249,12 @@ export async function PATCH(
   } catch (error) {
     console.error("Dispatch Incident Error:", error);
     
-    if (error instanceof Error) {
-      console.error("Error name:", error.name);
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
-    }
-    
     return NextResponse.json(
       { 
         error: "Internal Server Error",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: process.env.NODE_ENV === 'development' 
+          ? (error instanceof Error ? error.message : "Unknown error")
+          : "An error occurred"
       },
       { status: 500 }
     );

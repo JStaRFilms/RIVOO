@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Facility } from "@prisma/client";
 
 // --- Haversine Formula Helper ---
 function getDistanceInMeters(
@@ -28,29 +27,6 @@ function getDistanceInMeters(
 function formatIncidentId(id: string) {
   // Take last 8 characters of UUID and format nicely
   return `LAG-${id.slice(-8).toUpperCase()}`;
-}
-
-// Helper to extract coordinates from PostGIS geography
-function extractCoordinates(location: any): { lat: number; lng: number } | null {
-  if (!location) return null;
-  
-  // Handle different formats PostGIS might return
-  if (typeof location === 'string') {
-    try {
-      const parsed = JSON.parse(location);
-      if (parsed.coordinates && Array.isArray(parsed.coordinates)) {
-        return { lng: parsed.coordinates[0], lat: parsed.coordinates[1] };
-      }
-    } catch {
-      return null;
-    }
-  }
-  
-  if (location.coordinates && Array.isArray(location.coordinates)) {
-    return { lng: location.coordinates[0], lat: location.coordinates[1] };
-  }
-  
-  return null;
 }
 
 export async function POST(req: Request) {
@@ -83,49 +59,53 @@ export async function POST(req: Request) {
       },
     });
 
-    // Fetch all facilities using raw query to get PostGIS data
-    const facilities = await prisma.$queryRaw<any[]>`
-      SELECT 
-        id, 
-        name, 
-        address, 
-        city, 
-        state,
-        phone,
-        ST_AsGeoJSON(location)::json as location,
-        ST_Distance(
-          location::geography,
-          ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)::geography
-        ) as distance
-      FROM facilities
-      ORDER BY distance
-      LIMIT 5
-    `;
-
-    // Format facilities data
-    const formattedFacilities = facilities.map((facility) => {
-      const coords = extractCoordinates(facility.location);
-      return {
-        id: facility.id,
-        name: facility.name,
-        address: facility.address,
-        city: facility.city,
-        state: facility.state,
-        phone: facility.phone,
-        distance: Math.round(facility.distance), // Distance in meters
-        ...(coords && {
-          locationLat: coords.lat,
-          locationLng: coords.lng,
-        }),
-      };
+    // Fetch all facilities using Prisma (without PostGIS for now)
+    // We'll calculate distances manually using Haversine formula
+    const allFacilities = await prisma.facility.findMany({
+      select: {
+        id: true,
+        name: true,
+        address: true,
+        city: true,
+        state: true,
+        phone: true,
+        latitude: true,
+        longitude: true,
+      },
     });
 
+    // Calculate distances and sort
+    const facilitiesWithDistance = allFacilities
+      .filter(f => f.latitude != null && f.longitude != null)
+      .map((facility) => {
+        const distance = getDistanceInMeters(
+          latitude,
+          longitude,
+          facility.latitude!,
+          facility.longitude!
+        );
+        
+        return {
+          id: facility.id,
+          name: facility.name,
+          address: facility.address,
+          city: facility.city,
+          state: facility.state,
+          phone: facility.phone,
+          locationLat: facility.latitude,
+          locationLng: facility.longitude,
+          distance: Math.round(distance), // Distance in meters
+        };
+      })
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 5); // Get top 5 nearest
+
     // Automatically assign to nearest facility
-    if (formattedFacilities.length > 0) {
+    if (facilitiesWithDistance.length > 0) {
       await prisma.incident.update({
         where: { id: newIncident.id },
         data: {
-          facilityId: formattedFacilities[0].id,
+          facilityId: facilitiesWithDistance[0].id,
         },
       });
     }
@@ -150,9 +130,9 @@ export async function POST(req: Request) {
       { 
         incident: {
           ...(updatedIncident || newIncident),
-          displayId: formatIncidentId(newIncident.id), // Add formatted display ID
+          displayId: formatIncidentId(newIncident.id),
         },
-        facilities: formattedFacilities 
+        facilities: facilitiesWithDistance 
       },
       { status: 201 }
     );

@@ -4,7 +4,7 @@ import { DashboardProvider, useDashboard } from "@/context/UserDashboardContext"
 import { Sidebar } from "@/components/user-dashboard/Sidebar";
 import { Header } from "@/components/user-dashboard/Header";
 import { SOSModal } from "@/components/modals/SOSModal";
-import { ReportModal } from "@/components/modals/ReportModal";
+import ReportModal from "@/components/user-dashboard/ReportModal";
 
 // This internal component consumes the context
 const DashboardLayoutContent = ({ children, userRole }: { children: React.ReactNode, userRole: string }) => {

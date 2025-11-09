@@ -1,3 +1,4 @@
+// app/api/incidents/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
@@ -16,11 +17,8 @@ export async function GET(req: Request) {
     const status = searchParams.get('status');
 
     // Build query conditions
-    const where: any = {
-      facilityId: { not: null }, // Only show incidents assigned to a facility
-    };
+    const where: any = {};
     
-    // Filter by status if provided
     if (status) {
       where.status = status;
     }
@@ -45,6 +43,17 @@ export async function GET(req: Request) {
             phone: true,
           },
         },
+        assignedTo: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              }
+            }
+          }
+        }
       },
       orderBy: [
         { priority: 'desc' },
@@ -52,23 +61,20 @@ export async function GET(req: Request) {
       ],
     });
 
-    // Log for debugging
-    console.log(`Found ${incidents.length} incidents assigned to facilities`);
-    if (incidents.length > 0) {
-      console.log('Sample incident:', {
-        id: incidents[0].id,
-        hasUser: !!incidents[0].user,
-        userEmail: incidents[0].user?.email,
-        facility: incidents[0].facility?.name,
-        status: incidents[0].status,
-      });
-    }
-
-    return NextResponse.json(incidents);
+    // ✅ FIX: Return in the format the hospital dashboard expects
+    return NextResponse.json({ 
+      incidents,
+      count: incidents.length 
+    });
   } catch (error) {
     console.error("Get Incidents Error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { 
+        error: "Internal Server Error",
+        details: process.env.NODE_ENV === 'development' 
+          ? (error instanceof Error ? error.message : "Unknown error")
+          : undefined
+      },
       { status: 500 }
     );
   }

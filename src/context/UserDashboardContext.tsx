@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Alert, LiveCase, HealthInfo, Location, SOSAlertData } from '@/lib/types'; 
 import { Incident, Facility } from '@prisma/client';
 
@@ -20,13 +21,13 @@ interface DashboardContextType {
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
 
 export const DashboardProvider = ({ children }: { children: React.ReactNode }) => {
+  const { data: session } = useSession();
   const [sosModalOpen, setSOSModalOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [sendingAlert, setSendingAlert] = useState(false);
   const [alertData, setAlertData] = useState<SOSAlertData | null>(null);
   const [location, setLocation] = useState<Location | null>(null);
   const [liveCase, setLiveCase] = useState<LiveCase | null>(null);
-
   const [recentAlerts, setRecentAlerts] = useState<Alert[]>([]);
 
   const healthInfo: HealthInfo = {
@@ -34,6 +35,12 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
     allergies: 'None',
     conditions: 'Asthma',
     medication: 'Ventolin',
+  };
+
+  // Get user-specific localStorage key
+  const getStorageKey = () => {
+    if (!session?.user?.id) return null;
+    return `recent-alerts-${session.user.id}`;
   };
 
   // Get User Location on Mount
@@ -54,19 +61,26 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
 
   // Load recent alerts from localStorage and database on mount
   useEffect(() => {
+    if (!session?.user?.id) return;
+
     const loadRecentAlerts = async () => {
-      try {
-        // First try to load from localStorage (fast)
-        const savedAlerts = localStorage.getItem('recent-alerts');
-        if (savedAlerts) {
-          const alerts = JSON.parse(savedAlerts);
-          setRecentAlerts(alerts);
+      const storageKey = getStorageKey();
+      
+      if (storageKey) {
+        try {
+          // First try to load from localStorage (fast, user-specific)
+          const savedAlerts = localStorage.getItem(storageKey);
+          if (savedAlerts) {
+            const alerts = JSON.parse(savedAlerts);
+            setRecentAlerts(alerts);
+            console.log(`📦 Loaded ${alerts.length} alerts from localStorage for user:`, session.user.id);
+          }
+        } catch (error) {
+          console.log('No saved alerts found or error loading:', error);
         }
-      } catch (error) {
-        console.log('No saved alerts found or error loading:', error);
       }
       
-      // Then fetch from API to sync with database (accurate)
+      // Then fetch from API to sync with database (accurate, automatically filtered by user)
       try {
         const response = await fetch('/api/user/incidents');
         if (response.ok) {
@@ -75,10 +89,10 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
           // Convert incidents to alert format
           const alertsFromDB: Alert[] = incidents.map((incident: any) => ({
             date: new Date(incident.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            alert: incident.description || 'Emergency SOS',
+            alert: incident.description || incident.samaritanNotes || 'Emergency SOS',
             status: incident.status === 'RESOLVED' ? 'Resolved' 
-                  : incident.status === 'IN_PROGRESS' ? 'En Route'
-                  : incident.status === 'ASSIGNED' ? 'Accepted'
+                  : incident.status === 'EN_ROUTE' ? 'En Route'
+                  : incident.status === 'ACCEPTED' ? 'Accepted'
                   : incident.status === 'CANCELLED' ? 'Cancelled'
                   : 'Pending',
             hospital: incident.facility?.name || 'Matching...',
@@ -87,8 +101,10 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
           
           // Update state and localStorage with synced data
           setRecentAlerts(alertsFromDB);
-          if (alertsFromDB.length > 0) {
-            localStorage.setItem('recent-alerts', JSON.stringify(alertsFromDB));
+          console.log(`📡 Loaded ${alertsFromDB.length} alerts from API for user:`, session.user.id);
+          
+          if (alertsFromDB.length > 0 && storageKey) {
+            localStorage.setItem(storageKey, JSON.stringify(alertsFromDB));
           }
         }
       } catch (error) {
@@ -97,18 +113,22 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
     };
     
     loadRecentAlerts();
-  }, []);
+  }, [session?.user?.id]);
 
-  // Save recent alerts to localStorage whenever they change
+  // Save recent alerts to localStorage whenever they change (user-specific)
   useEffect(() => {
-    if (recentAlerts.length > 0) {
-      try {
-        localStorage.setItem('recent-alerts', JSON.stringify(recentAlerts));
-      } catch (error) {
-        console.error('Failed to save alerts:', error);
+    if (recentAlerts.length > 0 && session?.user?.id) {
+      const storageKey = getStorageKey();
+      if (storageKey) {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(recentAlerts));
+          console.log(`💾 Saved ${recentAlerts.length} alerts for user:`, session.user.id);
+        } catch (error) {
+          console.error('Failed to save alerts:', error);
+        }
       }
     }
-  }, [recentAlerts]);
+  }, [recentAlerts, session?.user?.id]);
 
   // Poll for incident status updates
   useEffect(() => {
@@ -134,8 +154,8 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
         const incident = data.incident;
         console.log('Polling incident status:', incident.status, 'Current progress:', liveCase.progress);
 
-        // Update based on incident status
-        if (incident.status === 'ASSIGNED' && liveCase.progress === 0) {
+        // Update based on incident status (matching new schema statuses)
+        if (incident.status === 'ACCEPTED' && liveCase.progress === 0) {
           // Hospital has accepted
           console.log('✅ Hospital accepted! Moving to Accepted state');
           setLiveCase(prev => prev ? { ...prev, progress: 1 } : null);
@@ -148,7 +168,8 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
                 : alert
             )
           );
-        } else if (incident.status === 'IN_PROGRESS' && liveCase.progress === 1) {
+          console.log('✅ Updated recent alerts with Accepted status');
+        } else if (incident.status === 'EN_ROUTE' && liveCase.progress === 1) {
           // Ambulance en route
           console.log('🚑 Ambulance dispatched! Moving to En Route state');
           setLiveCase(prev => prev ? { ...prev, progress: 2 } : null);
@@ -161,6 +182,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
                 : alert
             )
           );
+          console.log('✅ Updated recent alerts with En Route status');
         } else if (incident.status === 'RESOLVED') {
           // Case completed
           console.log('✅ Case resolved! Moving to Completed state');
@@ -174,6 +196,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
                 : alert
             )
           );
+          console.log('✅ Updated recent alerts with Resolved status');
           clearInterval(pollInterval);
         }
       } catch (error) {
@@ -226,7 +249,7 @@ export const DashboardProvider = ({ children }: { children: React.ReactNode }) =
       }
 
       const data: { 
-        incident: Incident & { publicId?: string }; 
+        incident: Incident & { publicId?: string; locationLat?: number; locationLng?: number }; 
         facilities: (Facility & { distance?: number })[] 
       } = await response.json();
       
