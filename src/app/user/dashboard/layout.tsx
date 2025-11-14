@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DashboardProvider, useDashboard } from "@/context/UserDashboardContext"; 
 import { Sidebar } from "@/components/user-dashboard/Sidebar";
 import { Header } from "@/components/user-dashboard/Header";
@@ -8,9 +8,10 @@ import ReportModal from "@/components/user-dashboard/ReportModal";
 import { useSession } from "next-auth/react";
 
 // This internal component consumes the context
-const DashboardLayoutContent = ({ children, userRole }: { children: React.ReactNode, userRole: string }) => {
+const DashboardLayoutContent = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { data: session } = useSession(); // Note: session isn't used here, but it's fine to have.
+  const [userRole, setUserRole] = useState<string>("USER"); // Default role
+  const { data: session } = useSession();
   const {
     sosModalOpen,
     setSOSModalOpen,
@@ -20,6 +21,18 @@ const DashboardLayoutContent = ({ children, userRole }: { children: React.ReactN
     sendingAlert,
     alertData,
   } = useDashboard();
+
+  // Fetch user role from session or API
+  useEffect(() => {
+    if (session?.user) {
+      // If role is in session
+      if ('role' in session.user) {
+        setUserRole(session.user.role as string);
+      }
+      // Or fetch from API if needed
+      // fetchUserRole();
+    }
+  }, [session]);
 
   return (
     <div className="flex h-screen bg-user-bg font-sans">
@@ -36,10 +49,8 @@ const DashboardLayoutContent = ({ children, userRole }: { children: React.ReactN
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        userRole={userRole} // This is correct. You pass the role to the Sidebar.
+        userRole={userRole}
       />
-
-      {/* --- THE STRAY CODE WAS HERE --- */}
 
       {sidebarOpen && (
         <div
@@ -56,18 +67,17 @@ const DashboardLayoutContent = ({ children, userRole }: { children: React.ReactN
           sendingAlert={sendingAlert}
         />
         
-        {/* Page Content (e.g., your dashboard or profile page) */}
         {children}
       </main>
     </div>
   );
 };
 
-// This is the main export that wraps everything in the context provider
-export default function DashboardLayout({ children, userRole }: { children: React.ReactNode, userRole: string }) {
+// This is the main export - only receives children from Next.js
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <DashboardProvider>
-      <DashboardLayoutContent userRole={userRole}>
+      <DashboardLayoutContent>
         {children}
       </DashboardLayoutContent>
     </DashboardProvider>
