@@ -5,12 +5,13 @@ import { Sidebar } from "@/components/user-dashboard/Sidebar";
 import { Header } from "@/components/user-dashboard/Header";
 import { SOSModal } from "@/components/modals/SOSModal";
 import ReportModal from "@/components/user-dashboard/ReportModal";
+import { useSession } from "next-auth/react";
 
 // This internal component consumes the context
 const DashboardLayoutContent = ({ children, userRole }: { children: React.ReactNode, userRole: string }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { data: session } = useSession(); // Note: session isn't used here, but it's fine to have.
   const {
-    // Note: currentView and setCurrentView are removed
     sosModalOpen,
     setSOSModalOpen,
     reportModalOpen,
@@ -35,8 +36,10 @@ const DashboardLayoutContent = ({ children, userRole }: { children: React.ReactN
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        userRole={userRole} 
+        userRole={userRole} // This is correct. You pass the role to the Sidebar.
       />
+
+      {/* --- THE STRAY CODE WAS HERE --- */}
 
       {sidebarOpen && (
         <div

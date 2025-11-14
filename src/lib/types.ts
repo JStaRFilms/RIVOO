@@ -2,7 +2,7 @@
 export interface Alert {
   date: string;
   alert: string;
-  status: 'Resolved' | 'Declined';
+  status: 'Pending' | 'Accepted' | 'En Route' | 'Resolved' | 'Cancelled';
   hospital: string;
   id: string;
 }

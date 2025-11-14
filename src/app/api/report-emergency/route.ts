@@ -37,6 +37,8 @@ export async function POST(req: Request) {
       symptoms,
       additionalInfo,
       analysis,
+      latitude,
+      longitude,
     } = body;
 
     console.log('📝 Received emergency report:', {
@@ -45,24 +47,17 @@ export async function POST(req: Request) {
       symptoms: symptoms?.substring(0, 50) + '...',
     });
 
-    // Get user's location (you should get this from frontend geolocation)
-    // For now, we'll use the location string or try to geocode it
-    // In production, you should get actual coordinates from the frontend
-    let userLat: number | null = null;
-    let userLng: number | null = null;
+    // Use provided coordinates or fallback
+    let userLat: number = latitude || 6.4541; // Default to Lagos
+    let userLng: number = longitude || 3.3947;
 
-    // Try to get coordinates from user's medical profile or use default
+    // Get user's medical profile
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
         medicalProfile: true,
       },
     });
-
-    // For demo purposes, use Lagos coordinates if not available
-    // In production, get these from browser geolocation API
-    userLat = 6.4541; // Default to Lagos
-    userLng = 3.3947;
 
     // Map AI severity to incident priority
     const priorityMap: { [key: string]: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' } = {
@@ -92,8 +87,8 @@ export async function POST(req: Request) {
       .map((facility) => ({
         ...facility,
         distance: calculateDistance(
-          userLat!,
-          userLng!,
+          userLat,
+          userLng,
           facility.latitude,
           facility.longitude
         ),
@@ -123,6 +118,8 @@ export async function POST(req: Request) {
           recommendedAction: analysis.recommendedAction,
           estimatedResponseTime: analysis.estimatedResponseTime,
           analyzedAt: new Date().toISOString(),
+          symptoms: symptoms,
+          additionalInfo: additionalInfo || null,
         },
         medicalProfileId: user?.medicalProfile?.id,
         // Assign to nearest facility
@@ -159,7 +156,7 @@ export async function POST(req: Request) {
     console.log(`✅ Emergency report created: ${incident.id}`);
     console.log(`🚨 Priority: ${priority} | AI Severity: ${analysis.severity}`);
 
-    // Return incident with matched facilities
+    // Return incident with matched facilities in the SAME format as SOS endpoint
     return NextResponse.json({
       success: true,
       incident,

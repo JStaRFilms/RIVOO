@@ -316,7 +316,7 @@ function Sidebar() {
             <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
               <span className="text-[#003049] font-bold text-xl">A</span>
             </div>
-            {!collapsed && <h1 className="text-xl font-bold">Aura Hospital</h1>}
+            {!collapsed && <h1 className="text-xl font-bold">Lekki Central Hospital</h1>}
           </div>
 
           <nav className="space-y-2">

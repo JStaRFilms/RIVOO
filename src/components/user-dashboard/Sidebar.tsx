@@ -1,43 +1,62 @@
 "use client";
 import React from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { X, LogOut, Activity, User, AlertCircle, Phone, Settings, ShieldCheck } from 'lucide-react';
+import {
+  X,
+  LogOut,
+  Activity,
+  User,
+  AlertCircle,
+  Phone,
+  Settings,
+  ShieldCheck,
+} from 'lucide-react';
 import { NavItem } from './NavItem';
 
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
-  userRole: string;
+  userRole?: string; // made optional
 }
 
-// Your role-based navigation array
+// ✅ All navigation items (roles stay for future use)
 const navigation = [
-  { name: 'Dashboard', href: '/user-dashboard', icon: Activity, roles: ['USER'] },
-  { name: 'My Profile', href: '/user-profile', icon: User, roles: ['USER'] },
+  { name: 'Dashboard', href: '/user/dashboard', icon: Activity, roles: ['USER'] },
+  { name: 'My Profile', href: '/user/dashboard/profile', icon: User, roles: ['USER'] },
   { name: 'SOS Card', href: '/user-sos', icon: AlertCircle, roles: ['USER'] },
   { name: 'My Health', href: '/user-health', icon: Activity, roles: ['USER'] },
-  // Add hospital/admin routes
-  { name: 'Incidents', href: '/hospital/incidents', icon: ShieldCheck, roles: ['HOSPITAL_STAFF', 'ADMIN'] },
-  { name: 'Hospital Dashboard', href: '/hospital/dashboard', icon: ShieldCheck, roles: ['HOSPITAL_STAFF', 'ADMIN'] },
-  // Universal routes
-  { name: 'Contact', href: '/contact', icon: Phone, roles: ['USER', 'HOSPITAL_STAFF', 'ADMIN'] },
-  { name: 'Settings', href: '/settings', icon: Settings, roles: ['USER', 'HOSPITAL_STAFF', 'ADMIN'] },
+  // { name: 'Incidents', href: '/hospital/incidents', icon: ShieldCheck, roles: ['HOSPITAL_STAFF', 'ADMIN'] },
+  // { name: 'Hospital Dashboard', href: '/hospital/dashboard', icon: ShieldCheck, roles: ['HOSPITAL_STAFF', 'ADMIN'] },
+  // { name: 'Contact', href: '/contact', icon: Phone, roles: ['USER', 'HOSPITAL_STAFF', 'ADMIN'] },
+  // { name: 'Settings', href: '/settings', icon: Settings, roles: ['USER', 'HOSPITAL_STAFF', 'ADMIN'] },
 ];
 
-export const Sidebar = ({ 
-  sidebarOpen, 
-  setSidebarOpen, 
-  userRole 
+export const Sidebar = ({
+  sidebarOpen,
+  setSidebarOpen,
+  userRole,
 }: SidebarProps) => {
   const { data: session } = useSession();
 
-  // Filter navigation based on user's role
-  const filteredNavigation = navigation.filter(item => 
-    item.roles.includes(userRole)
-  );
+  // ✅ Derive and normalize role safely
+  const normalizedRole =
+    userRole?.toUpperCase() ||
+    session?.user?.role?.toUpperCase() ||
+    'USER';
+
+  console.log('✅ Active Role:', normalizedRole);
+
+  // ✅ Filter navigation safely (fallback to show all if no match)
+  const filteredNavigation =
+    navigation.filter((item) => item.roles.includes(normalizedRole)) || navigation;
+
+  // ✅ Fallback: if filtering somehow yields no links, show all
+  const visibleNavigation =
+    filteredNavigation.length > 0 ? filteredNavigation : navigation;
 
   const userName = session?.user?.name || 'User';
-  const userInitials = userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'U';
+  const userInitials =
+    userName.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase() || 'U';
 
   return (
     <aside
@@ -59,7 +78,7 @@ export const Sidebar = ({
 
         {/* Navigation Menu */}
         <nav className="flex-1 px-3 py-6 space-y-1 text-black">
-          {filteredNavigation.map((item) => (
+          {visibleNavigation.map((item) => (
             <NavItem
               key={item.name}
               icon={item.icon}
@@ -75,7 +94,9 @@ export const Sidebar = ({
             <div className="w-10 h-10 rounded-full bg-sea-green/10 flex items-center justify-center">
               <span className="text-sm font-medium text-sea-green">{userInitials}</span>
             </div>
-            <span className="text-sm font-medium text-prussian-blue truncate">{userName}</span>
+            <span className="text-sm font-medium text-prussian-blue truncate">
+              {userName}
+            </span>
           </div>
         </div>
 

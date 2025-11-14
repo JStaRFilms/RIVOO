@@ -19,7 +19,7 @@ export const LiveCaseCard = ({ liveCase }: LiveCaseCardProps) => {
         </h3>
       </div>
       <p className="text-2xl font-lato font-bold text-prussian-blue mb-2">
-        Case #{liveCase.caseId}
+        Case #{liveCase.hospital}
       </p>
       <p className="text-sm text-slate-gray mb-1">
         Hospital Found: {liveCase.hospitalFound ? 'Yes' : 'Searching...'}

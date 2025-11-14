@@ -96,7 +96,7 @@ export default function AuthPage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-8 border border-gray-200">
+        <div className="bg-white text-black rounded-2xl shadow-sm overflow-hidden mb-8 border border-gray-200">
           <div className="flex">
             <button
               onClick={() => setActiveTab('signin')}
@@ -175,7 +175,7 @@ export default function AuthPage() {
                 {error && (
                   <div className="bg-red-50 border-l-4 border-red-400 p-4">
                     <div className="flex">
-                      <div className="flex-shrink-0">
+                      <div className="shrink-0">
                         <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
@@ -282,7 +282,7 @@ export default function AuthPage() {
 
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                   <div className="flex">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <svg className="h-5 w-5 text-user-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
@@ -299,7 +299,7 @@ export default function AuthPage() {
                 {error && (
                   <div className="bg-red-50 border-l-4 border-red-400 p-4">
                     <div className="flex">
-                      <div className="flex-shrink-0">
+                      <div className="shrink-0">
                         <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>

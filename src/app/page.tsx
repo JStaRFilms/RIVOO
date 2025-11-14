@@ -4,13 +4,10 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-user-bg to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-linear-to-br from-user-bg to-blue-50 flex items-center justify-center px-4">
       <div className="max-w-4xl mx-auto text-center">
         {/* Logo and Title */}
         <div className="mb-12">
-          <div className="bg-user-primary w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <span className="text-white font-bold text-3xl">R</span>
-          </div>
           <h1 className="text-4xl md:text-6xl font-bold text-user-text mb-4 font-heading">
             RIVOO
           </h1>
