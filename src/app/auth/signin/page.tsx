@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function AuthPage() {
+// Separate component that uses useSearchParams
+function AuthPageContent() {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const searchParams = useSearchParams();
   const [signinData, setSigninData] = useState({ email: '', password: '' });
@@ -283,7 +284,7 @@ export default function AuthPage() {
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                   <div className="flex">
                     <div className="shrink-0">
-                      <svg className="h-5 w-5 text-user-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-5 text-user-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
                     </div>
@@ -396,5 +397,21 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function AuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-user-bg">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-user-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-user-secondary">Loading...</p>
+        </div>
+      </div>
+    }>
+      <AuthPageContent />
+    </Suspense>
   );
 }
